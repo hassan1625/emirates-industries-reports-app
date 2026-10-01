@@ -1,0 +1,138 @@
+{
+  "source": "synthetic (Dev Plan §4c layout)",
+  "synthetic": true,
+  "locationName": "Emirates Industries LLC Al Quoz",
+  "columns": [
+    "collectionName",
+    "productName",
+    "sku",
+    "barcode",
+    "stockCommitted",
+    "stockAvailable",
+    "stockOnHand"
+  ],
+  "lowStockThreshold": 5,
+  "rowCount": 12,
+  "rows": [
+    {
+      "collectionName": "ADEK Uniforms",
+      "productName": "PE T-shirt (KG1-GR10)-ADEK",
+      "sku": "ADK-TSHT-0003-10",
+      "barcode": "6290000000011",
+      "stockCommitted": 4,
+      "stockAvailable": 36,
+      "stockOnHand": 40,
+      "expectLowStockRed": false
+    },
+    {
+      "collectionName": "ADEK Uniforms",
+      "productName": "PE Trouser (KG1-GR10)-ADEK",
+      "sku": "ADK-TRSR-0002-10",
+      "barcode": "6290000000028",
+      "stockCommitted": 7,
+      "stockAvailable": 5,
+      "stockOnHand": 12,
+      "expectLowStockRed": true
+    },
+    {
+      "collectionName": "ADEK Uniforms",
+      "productName": "Winter Jacket (KG1-GR10)-ADEK",
+      "sku": "ADK-JACT-0001-12",
+      "barcode": "6290000000035",
+      "stockCommitted": 7,
+      "stockAvailable": 6,
+      "stockOnHand": 13,
+      "expectLowStockRed": false
+    },
+    {
+      "collectionName": "ADEK Uniforms",
+      "productName": "Girls Pinafore (GR1-GR5)-ADEK",
+      "sku": "ADK-PINF-0001-10",
+      "barcode": "6290000000042",
+      "stockCommitted": 0,
+      "stockAvailable": 2,
+      "stockOnHand": 2,
+      "expectLowStockRed": true
+    },
+    {
+      "collectionName": "ADEK Uniforms",
+      "productName": "Long Sleeve Polo T-shirt (KG1-GR10)-ADEK",
+      "sku": "ADK-TSHT-0002-12",
+      "barcode": "6290000000059",
+      "stockCommitted": 0,
+      "stockAvailable": 0,
+      "stockOnHand": 0,
+      "expectLowStockRed": true
+    },
+    {
+      "collectionName": "ADEK Uniforms",
+      "productName": "Boys Trouser (KG1-GR10)-ADEK",
+      "sku": "ADK-TRSR-0001-MTM",
+      "barcode": "6290000000066",
+      "stockCommitted": 6,
+      "stockAvailable": -3,
+      "stockOnHand": 3,
+      "expectLowStockRed": true
+    },
+    {
+      "collectionName": "ATS Uniforms",
+      "productName": "Unisex White T-shirt-ATS",
+      "sku": "IAT-TSHT-0003-XL",
+      "barcode": "6290000000073",
+      "stockCommitted": 10,
+      "stockAvailable": 240,
+      "stockOnHand": 250,
+      "expectLowStockRed": false
+    },
+    {
+      "collectionName": "ATS Uniforms",
+      "productName": "Boys Cargo Pants-ATS",
+      "sku": "IAT-TRSR-0015-L",
+      "barcode": "6290000000080",
+      "stockCommitted": 0,
+      "stockAvailable": 6,
+      "stockOnHand": 6,
+      "expectLowStockRed": false
+    },
+    {
+      "collectionName": "ATS Uniforms",
+      "productName": "Unisex Sports Pants-ATS",
+      "sku": "IAT-TRSR-0013-M",
+      "barcode": "6290000000097",
+      "stockCommitted": 0,
+      "stockAvailable": 5,
+      "stockOnHand": 5,
+      "expectLowStockRed": true
+    },
+    {
+      "collectionName": "AIS Uniforms",
+      "productName": "Unisex PE T-Shirt (GR5-GR12)-AIS",
+      "sku": "AIS-TSHT-0002-12",
+      "barcode": "6290000000103",
+      "stockCommitted": 15,
+      "stockAvailable": 75,
+      "stockOnHand": 90,
+      "expectLowStockRed": false
+    },
+    {
+      "collectionName": "AIS Uniforms",
+      "productName": "Girls Pinafore (GR4-GR12)-AIS",
+      "sku": "AIS-PINF-0003-7",
+      "barcode": "6290000000110",
+      "stockCommitted": 2,
+      "stockAvailable": 6,
+      "stockOnHand": 8,
+      "expectLowStockRed": false
+    },
+    {
+      "collectionName": "Accessories",
+      "productName": "Shopping Bag",
+      "sku": "BAG-RUSB-0001-001",
+      "barcode": "6290000000127",
+      "stockCommitted": 0,
+      "stockAvailable": 1000,
+      "stockOnHand": 1000,
+      "expectLowStockRed": false
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "55a91743cf2b14a2f4e1f347dbfc25a2"
+application_url = "https://seismic-untold-discount.ngrok-free.dev"
+embedded = true
+name = "Emirates Custom Report App"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_orders,read_all_orders,read_products,read_locations,read_inventory,read_returns"
+
+[webhooks]
+api_version = "2026-10"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = [ "app/uninstalled" ]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/scopes_update"
+  topics = [ "app/scopes_update" ]
+
+[auth]
+redirect_urls = [ "https://seismic-untold-discount.ngrok-free.dev/api/auth" ]
+
+[build]
+automatically_update_urls_on_dev = true
