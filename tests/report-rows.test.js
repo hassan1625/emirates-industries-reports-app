@@ -65,7 +65,7 @@ describe("row shape", () => {
       sku: "TR-1",
       barcode: "6290001",
       variantPrice: 52.5,
-      unitPriceBeforeVat: 52.5 / 1.05,
+      unitPriceBeforeVat: 50,
       netItemsSold: 1,
       grossSales: 50,
       discounts: 0,

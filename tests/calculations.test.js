@@ -16,10 +16,18 @@ const near = (actual, expected, tol = 0.0101) =>
   assert.ok(Math.abs(actual - expected) <= tol, `expected ${expected}, got ${actual}`);
 
 describe("unit formulas", () => {
-  test("unitPriceBeforeVat is price ÷ 1.05 and NOT rounded", () => {
+  test("unitPriceBeforeVat is price ÷ 1.05 and NOT rounded to cents", () => {
     assert.equal(unitPriceBeforeVat(105), 100);
-    assert.equal(unitPriceBeforeVat(0.25), 0.25 / 1.05);
-    assert.notEqual(unitPriceBeforeVat(0.25), 0.24); // would be 0.24 if rounded
+    assert.ok(Math.abs(unitPriceBeforeVat(0.25) - 0.25 / 1.05) < 1e-9);
+    assert.notEqual(unitPriceBeforeVat(0.25), 0.24); // would be 0.24 if rounded to cents
+    assert.equal(unitPriceBeforeVat(0.25), 0.2380952381);
+  });
+
+  test("unitPriceBeforeVat has no floating-point noise (91.35 / 1.05 is exactly 87)", () => {
+    assert.equal(91.35 / 1.05, 86.99999999999999); // what plain JavaScript gives
+    assert.equal(unitPriceBeforeVat(91.35), 87);
+    assert.equal(unitPriceBeforeVat(37.8), 36);
+    assert.equal(unitPriceBeforeVat(13.2), 12.5714285714);
   });
 
   test("shippingExclVat rounds to 2 decimals", () => {

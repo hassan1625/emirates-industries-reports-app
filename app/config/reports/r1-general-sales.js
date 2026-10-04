@@ -42,9 +42,10 @@ export const generalSalesReport = {
 
   filters: [
     { key: "dateRange", ref: "dateRange", mode: DATE_RANGE_MODES.SINGLE, required: true },
-    { key: "salesChannel", label: "Sales Channel", type: "multiSelect", source: { operation: "orders", path: "sourceName" } },
-    { key: "posLocation", ref: "locationName", label: "POS Location", type: "multiSelect" },
+    { key: "salesChannel", label: "Sales Channel", type: "multiSelect", matchOn: "sourceName", source: { operation: "orders", path: "sourceName" } },
+    { key: "posLocation", ref: "locationName", label: "POS Location", type: "multiSelect", matchOn: "locationId" },
     { key: "posStaff", label: "POS Staff", type: "multiSelect", available: false, unavailableReason: "Shopify only shares staff names with Plus and Advanced plans.", source: { operation: "orders", path: "staffMember.name" } },
-    { key: "collection", ref: "collectionName", type: "multiSelect" },
+    // Shipping rows have no collection, so a collection filter leaves them out.
+    { key: "collection", ref: "collectionName", type: "multiSelect", matchOn: "collectionName" },
   ],
 };

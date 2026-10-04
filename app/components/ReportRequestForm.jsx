@@ -79,8 +79,9 @@ function Checkbox({ label, name, checked, indeterminate, disabled, details, onCh
 // options    { [filterKey]: [{ value, label }] }
 // defaults   { dateRange: { from, to }, fields: [fieldKey] }
 // errors     { [filterKey]: message } from the server
+// children   rendered inside the page after the form (job status, preview)
 // onSubmit   ({ dateRange: { from, to }, filters: { [filterKey]: string[] }, fields?: string[] })
-export default function ReportRequestForm({ reportKey, options, defaults, errors = {}, busy = false, onSubmit }) {
+export default function ReportRequestForm({ reportKey, options, defaults, errors = {}, busy = false, onSubmit, children }) {
   const report = getReport(reportKey);
   const filters = getReportFilters(reportKey);
   const dateFilter = filters.find((f) => f.type === "dateRange");
@@ -161,6 +162,8 @@ export default function ReportRequestForm({ reportKey, options, defaults, errors
           </s-stack>
         </s-section>
       )}
+
+      {children}
     </s-page>
   );
 }

@@ -99,3 +99,10 @@ describe("sample", () => {
     assert.deepEqual(run(rows, { sampleSize: 3 }).sample.map((v) => v.sku), ["S0", "S1", "S2"]);
   });
 });
+
+test("by-collection rows count lines, so their order count is not shown (null)", () => {
+  const result = run([row({ meta: { orderId: "A" }, collectionName: "Boys" }), row({ meta: { orderId: "B" }, collectionName: "Boys" })]);
+  assert.equal(result.byCollection[0].orders, null);
+  assert.equal(result.byCollection[0].lineRows, 2);
+  assert.equal(result.byMonth[0].orders, 2); // order-level groups still count orders
+});

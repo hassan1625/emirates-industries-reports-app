@@ -7,6 +7,13 @@ import { loadProductIndex } from "./join.js";
 import { buildGeneralSalesRows } from "./report-rows.js";
 import { loadMappings } from "./location-mapping.js";
 import { STORE_TIME_ZONE } from "../config/store.js";
+import { getReportFields } from "../config/index.js";
+import { buildRowFilter, selectColumns } from "./report-filter.js";
+
+// The preview is a testing aid: on in development, off in production unless
+// explicitly enabled. It goes away when the XLSX download exists (Milestone 5).
+// eslint-disable-next-line no-undef
+export const previewEnabled = (env = process.env) => env.NODE_ENV !== "production" || env.SHOW_REPORT_PREVIEW === "on";
 
 // Money is accumulated in whole cents so thousands of additions do not drift.
 const cents = (value) => Math.round((value ?? 0) * 100);
@@ -45,7 +52,9 @@ function finish(t) {
   };
 }
 
-export function createPreviewAccumulator({ sampleSize = 50, timeZone = STORE_TIME_ZONE } = {}) {
+// `columns` limits the sample rows to the chosen fields (totals always cover
+// every row, they are a testing aid).
+export function createPreviewAccumulator({ sampleSize = 50, timeZone = STORE_TIME_ZONE, columns = null } = {}) {
   const overall = emptyTotals();
   const groups = { byMonth: new Map(), byDay: new Map(), byLocation: new Map(), byChannel: new Map(), byCollection: new Map() };
   const sample = [];
@@ -81,7 +90,7 @@ export function createPreviewAccumulator({ sampleSize = 50, timeZone = STORE_TIM
       }
       for (const [map, key] of lineLevel) addToTotals(slot(map, key), row);
 
-      if (sample.length < sampleSize) sample.push(values);
+      if (sample.length < sampleSize) sample.push(selectColumns(values, columns));
     },
 
     result() {
@@ -96,7 +105,8 @@ export function createPreviewAccumulator({ sampleSize = 50, timeZone = STORE_TIM
         byDay: table(groups.byDay, "key"),
         byLocation: table(groups.byLocation),
         byChannel: table(groups.byChannel),
-        byCollection: table(groups.byCollection),
+        // Collection is line-level: rows are counted, orders are not meaningful.
+        byCollection: table(groups.byCollection).map((row) => ({ ...row, orders: null })),
         sample,
       };
     },
@@ -104,11 +114,18 @@ export function createPreviewAccumulator({ sampleSize = 50, timeZone = STORE_TIM
 }
 
 // Runs the whole row pipeline over a DATA_READY job's files and summarizes it.
-export async function previewJob({ db, job, sampleSize }) {
+// `filters` and `fields` are the request's (see report-request.js); `reportKey`
+// supplies the column labels. Without them every row and column is used.
+export async function previewJob({ db, job, sampleSize, filters = {}, fields = null, reportKey = "generalSales" }) {
   if (!job.ordersFile || !job.productsFile) throw new Error("Job has no downloaded files; it must be DATA_READY");
   const productIndex = await loadProductIndex(job.productsFile);
   const mappings = await loadMappings(db, job.shop);
-  const accumulator = createPreviewAccumulator({ sampleSize });
-  for await (const row of buildGeneralSalesRows(groupOrders(readJsonl(job.ordersFile)), { productIndex, mappings })) accumulator.add(row);
-  return accumulator.result();
+  const keep = buildRowFilter(reportKey, filters);
+  const accumulator = createPreviewAccumulator({ sampleSize, columns: fields });
+  for await (const row of buildGeneralSalesRows(groupOrders(readJsonl(job.ordersFile)), { productIndex, mappings })) {
+    if (keep(row)) accumulator.add(row);
+  }
+  const labels = Object.fromEntries(getReportFields(reportKey).map((field) => [field.key, field.label]));
+  const columns = (fields ?? Object.keys(labels)).map((key) => ({ key, label: labels[key] ?? key }));
+  return { ...accumulator.result(), columns };
 }

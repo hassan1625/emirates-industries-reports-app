@@ -7,9 +7,12 @@
 // discounts as negative numbers; that is a display concern.
 import { round2, VAT_DIVISOR } from "./money.js";
 
-// Unit Price Before VAT = Variant Price ÷ 1.05 — unrounded.
+// Unit Price Before VAT = Variant Price ÷ 1.05 — unrounded. Only binary
+// floating-point noise is removed (91.35 ÷ 1.05 is 86.99999999999999 in
+// JavaScript, the true value is 87); ten decimals is far below a fils, so this
+// is not rounding in any money sense.
 export function unitPriceBeforeVat(variantPrice) {
-  return variantPrice / VAT_DIVISOR;
+  return Number((variantPrice / VAT_DIVISOR).toFixed(10));
 }
 
 // Shipping Charges (excl. VAT) = ROUND(Shipping ÷ 1.05, 2). Rounding applies

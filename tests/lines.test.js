@@ -12,11 +12,11 @@ const line = (over) => ({ id: "L", quantity: 1, currentQuantity: 1, originalUnit
 describe("lineCalculation", () => {
   test("a plain VAT-inclusive line: net = price / 1.05, tax 5%, total = price", () => {
     const r = lineCalculation(line({ originalUnitPriceSet: money(91.35), taxLines: [tax(4.35)] }));
-    assert.deepEqual(r, { variantPrice: 91.35, unitPriceBeforeVat: 91.35 / 1.05, netItemsSold: 1, grossSales: 87, discounts: 0, returnsAmount: 0, netSales: 87, taxes: 4.35, totalSales: 91.35 });
+    assert.deepEqual(r, { variantPrice: 91.35, unitPriceBeforeVat: 87, netItemsSold: 1, grossSales: 87, discounts: 0, returnsAmount: 0, netSales: 87, taxes: 4.35, totalSales: 91.35 });
   });
 
-  test("unit price before VAT is the locked formula: price / 1.05, NOT rounded", () => {
-    assert.equal(lineCalculation(line({ originalUnitPriceSet: money(0.25), taxLines: [tax(0.01)] })).unitPriceBeforeVat, 0.25 / 1.05);
+  test("unit price before VAT is the locked formula: price / 1.05, NOT rounded to cents", () => {
+    assert.equal(lineCalculation(line({ originalUnitPriceSet: money(0.25), taxLines: [tax(0.01)] })).unitPriceBeforeVat, 0.2380952381);
   });
 
   test("quantity multiplies: 2 x 0.25 gives 0.48 gross and 0.02 tax", () => {
