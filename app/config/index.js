@@ -5,3 +5,4 @@
 // labels) anywhere else. `npm run check:config` enforces this.
 export { SHARED_SCHEMA, SHARED_DIMENSIONS, SHARED_METRICS, SHARED_CALCULATIONS, DATE_RANGE_MODES } from "./schema.js";
 export { REPORTS, getReport, getReportFields, getReportFilters, resolveItem } from "./reports/index.js";
+export { hasFieldSelection, getSelectableFields, defaultFieldKeys } from "./field-selection.js";

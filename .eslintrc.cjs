@@ -50,6 +50,9 @@ module.exports = {
       },
       rules: {
         "react/no-unknown-property": ["error", { ignore: ["variant"] }],
+        // The app is plain JavaScript (no TypeScript), so props are documented in
+        // comments rather than with the prop-types package.
+        "react/prop-types": "off",
       },
     },
 

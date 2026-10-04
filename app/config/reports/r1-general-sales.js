@@ -20,7 +20,7 @@ export const generalSalesReport = {
     { key: "posLocation", ref: "locationName", label: "POS Location" },
     // Unavailable: Shopify only grants the staff scope (read_users) to Plus/Advanced stores
     // and the client is on Grow. The column stays, empty, until the client decides.
-    { key: "posStaff", label: "POS Staff", type: "string", available: false, source: { operation: "orders", path: "staffMember.name" } },
+    { key: "posStaff", label: "POS Staff", type: "string", available: false, unavailableReason: "Shopify only shares staff names with Plus and Advanced plans.", source: { operation: "orders", path: "staffMember.name" } },
     { key: "collectionName", ref: "collectionName" },
     { key: "productTitle", ref: "productTitle" },
     { key: "sku", ref: "sku", label: "Product Variant SKU" },
@@ -44,7 +44,7 @@ export const generalSalesReport = {
     { key: "dateRange", ref: "dateRange", mode: DATE_RANGE_MODES.SINGLE, required: true },
     { key: "salesChannel", label: "Sales Channel", type: "multiSelect", source: { operation: "orders", path: "sourceName" } },
     { key: "posLocation", ref: "locationName", label: "POS Location", type: "multiSelect" },
-    { key: "posStaff", label: "POS Staff", type: "multiSelect", source: { operation: "orders", path: "staffMember.name" } },
+    { key: "posStaff", label: "POS Staff", type: "multiSelect", available: false, unavailableReason: "Shopify only shares staff names with Plus and Advanced plans.", source: { operation: "orders", path: "staffMember.name" } },
     { key: "collection", ref: "collectionName", type: "multiSelect" },
   ],
 };
