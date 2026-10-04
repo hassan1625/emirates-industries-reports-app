@@ -21,22 +21,48 @@ test("invalid or reversed ranges are rejected", () => {
   assert.throws(() => buildOrdersSearchQuery({ start: range.end, end: range.start }), /must not be after/);
 });
 
-test("query respects bulk limits: <= 5 connections, nesting depth 1, sorted by CREATED_AT", () => {
+test("query respects bulk limits: exactly 5 connections including the root", () => {
   const query = buildOrdersBulkQuery(range);
-  const connections = query.match(/edges\s*\{/g).length;
-  assert.equal(connections, 4); // orders + discountApplications + shippingLines + lineItems
-  assert.ok(connections - 1 <= 5, "connections under the order");
+  // orders + discountApplications + lineItems + returns + returnLineItems
+  assert.equal(query.match(/edges\s*\{/g).length, 5);
   assert.match(query, /sortKey: CREATED_AT/);
   assert.match(query, /created_at:>=2026-01-01T00:00:00Z/);
 });
 
-test("query selects every order-side field Report 1 needs", () => {
+test("no connection is selected inside the refunds list (Shopify rejects it)", () => {
+  const query = buildOrdersBulkQuery(range);
+  const refunds = query.slice(query.indexOf("refunds {"));
+  const refundsBlock = refunds.slice(0, refunds.indexOf("discountApplications"));
+  assert.ok(!refundsBlock.includes("edges"));
+  assert.ok(!query.includes("refundLineItems"));
+});
+
+test("shipping uses the post-discount field, not the pre-discount total", () => {
+  const query = buildOrdersBulkQuery(range);
+  assert.ok(query.includes("currentShippingPriceSet"));
+  assert.ok(!query.includes("totalShippingPriceSet"));
+  assert.ok(!query.includes("shippingLines"));
+});
+
+test("query selects every order-side field the reports need", () => {
   const query = buildOrdersBulkQuery(range);
   for (const field of [
     "name", "createdAt", "sourceName", "retailLocation", "paymentGatewayNames",
-    "discountApplications", "shippingLines", "lineItems", "sku", "quantity", "originalUnitPriceSet",
-    "discountAllocations", "taxLines", "barcode", "product { id }",
+    "discountApplications", "lineItems", "sku", "quantity", "currentQuantity", "originalUnitPriceSet",
+    "discountedUnitPriceAfterAllDiscountsSet", "discountAllocations", "taxLines", "barcode", "product { id }",
+    "returns", "returnLineItems", "returnReasonDefinition", "status", "totalRefundedSet",
   ]) assert.ok(query.includes(field), `missing ${field}`);
+});
+
+test("discount applications carry their index so line allocations can be matched exactly", () => {
+  const query = buildOrdersBulkQuery(range);
+  const applications = query.slice(query.indexOf("discountApplications"), query.indexOf("lineItems"));
+  assert.match(applications, /\bindex\b/);
+  assert.match(query, /discountApplication \{ index \}/);
+});
+
+test("uses the non-deprecated return reason field", () => {
+  assert.ok(!/\breturnReason\b(?!Definition)/.test(buildOrdersBulkQuery(range)));
 });
 
 test("query never selects staffMember (needs read_users, Plus/Advanced only)", () => {

@@ -7,6 +7,12 @@ import { useFetcher, useLoaderData, useSearchParams } from "react-router";
 import { authenticate } from "../shopify.server";
 import { buildOrdersBulkQuery, buildOrdersSearchQuery } from "../pipeline/orders-bulk-query";
 import { startBulkOperation } from "../pipeline/bulk";
+import db from "../db.server";
+import { startReportJob } from "../pipeline/start-job";
+import { handleBulkOperationsFinish } from "../pipeline/bulk-finish";
+import { advanceJob } from "../pipeline/job-chain";
+import { STAGES } from "../pipeline/job-stages";
+import { buildBulkOperationsFinishPayload } from "../testing/bulk-operations-finish";
 
 const MAX_LINES = 1000000;
 
@@ -23,43 +29,134 @@ const KINDS = {
     build: (range) => buildOrdersBulkQuery(range),
   },
   returnsRefunds: {
-    label: "Returns + refunds per order (Net Sales / Return Reason)",
+    label: "Returns + refund totals per order (Net Sales / Return Reason)",
     build: (range) => `{
   orders(query: ${JSON.stringify(buildOrdersSearchQuery(range))}, sortKey: CREATED_AT) {
-    edges { node {
-      id name createdAt
-      refunds {
-        id createdAt
+    edges {
+      node {
+        id
+        name
+        createdAt
         totalRefundedSet { ${MONEY} }
-        refundLineItems { edges { node { id quantity restockType subtotalSet { ${MONEY} } totalTaxSet { ${MONEY} } lineItem { id } } } }
+        refunds {
+          id
+          createdAt
+          totalRefundedSet { ${MONEY} }
+        }
+        lineItems {
+          edges {
+            node {
+              id
+              quantity
+              currentQuantity
+              discountedUnitPriceAfterAllDiscountsSet { ${MONEY} }
+            }
+          }
+        }
+        returns {
+          edges {
+            node {
+              id
+              status
+              returnLineItems {
+                edges {
+                  node {
+                    ... on ReturnLineItem {
+                      id
+                      quantity
+                      returnReason
+                      returnReasonDefinition { name handle }
+                      fulfillmentLineItem { lineItem { id } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
-      returns { edges { node {
-        id status
-        returnLineItems { edges { node { ... on ReturnLineItem { id quantity returnReason returnReasonDefinition { name handle } fulfillmentLineItem { lineItem { id } } } } } }
-      } } }
-    } }
+    }
   }
 }`,
   },
   everything: {
-    label: "LIMIT TEST: orders + discounts + shipping + items + refunds + returns in ONE query",
+    label: "FULL TEST: all of Report 1's order data in ONE query (exactly 5 connections)",
     build: (range) => `{
   orders(query: ${JSON.stringify(buildOrdersSearchQuery(range))}, sortKey: CREATED_AT) {
-    edges { node {
-      id name createdAt sourceName retailLocation { id name } paymentGatewayNames
-      discountApplications { edges { node { __typename ... on DiscountCodeApplication { code } ... on ManualDiscountApplication { title description } } } }
-      shippingLines { edges { node { id title originalPriceSet { ${MONEY} } } } }
-      lineItems { edges { node { id sku quantity originalUnitPriceSet { ${MONEY} } } } }
-      refunds { id totalRefundedSet { ${MONEY} } refundLineItems { edges { node { id quantity lineItem { id } } } } }
-      returns { edges { node { id returnLineItems { edges { node { ... on ReturnLineItem { id returnReason } } } } } } }
-    } }
+    edges {
+      node {
+        id
+        name
+        createdAt
+        sourceName
+        retailLocation { id name }
+        paymentGatewayNames
+        taxesIncluded
+        totalShippingPriceSet { ${MONEY} }
+        totalRefundedSet { ${MONEY} }
+        refunds {
+          id
+          createdAt
+          totalRefundedSet { ${MONEY} }
+        }
+        discountApplications {
+          edges {
+            node {
+              __typename
+              allocationMethod
+              ... on DiscountCodeApplication { code }
+              ... on ManualDiscountApplication { title description }
+              ... on AutomaticDiscountApplication { title }
+            }
+          }
+        }
+        lineItems {
+          edges {
+            node {
+              id
+              title
+              sku
+              quantity
+              currentQuantity
+              originalUnitPriceSet { ${MONEY} }
+              discountedUnitPriceAfterAllDiscountsSet { ${MONEY} }
+              discountAllocations { allocatedAmountSet { ${MONEY} } }
+              taxLines { title rate priceSet { ${MONEY} } }
+              variant { id barcode }
+              product { id }
+            }
+          }
+        }
+        returns {
+          edges {
+            node {
+              id
+              status
+              returnLineItems {
+                edges {
+                  node {
+                    ... on ReturnLineItem {
+                      id
+                      quantity
+                      returnReason
+                      returnReasonDefinition { name handle }
+                      fulfillmentLineItem { lineItem { id } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }`,
   },
   products: {
     label: "Products + tags + collections + variants (Reports 1–5)",
     build: () => `{
-  products(query: "status:any") {
+  products {
     edges { node {
       id title status tags
       collections { edges { node { id title } } }
@@ -104,6 +201,7 @@ function summarizeOrders(lines) {
     manualDiscounts: {},
     automaticDiscountTitles: {},
     shippingLines: 0,
+    ordersWithShippingTotal: 0,
     ordersWithPaymentGateway: 0,
     firstLineKeys: lines.length ? Object.keys(lines[0]) : [],
   };
@@ -122,6 +220,7 @@ function summarizeOrders(lines) {
         bump(s.retailLocations, node.retailLocation.name);
       }
       if (node.paymentGatewayNames?.length) s.ordersWithPaymentGateway += 1;
+      if (Number(node.totalShippingPriceSet?.shopMoney?.amount) > 0) s.ordersWithShippingTotal += 1;
     } else if ("originalUnitPriceSet" in node) {
       s.lineItems += 1;
       if (node.sku) s.lineItemsWithSku += 1;
@@ -152,10 +251,14 @@ function summarizeReturnsRefunds(lines) {
     lines: lines.length,
     orders: 0,
     ordersWithRefunds: 0,
+    ordersWithRefundTotal: 0,
     ordersWithReturns: 0,
     refunds: 0,
     refundLineItems: 0,
     refundLineItemsWithLineItemRef: 0,
+    lineItems: 0,
+    lineItemsWithReducedCurrentQuantity: 0,
+    lineItemsFullyRemovedOrRefunded: 0,
     returns: 0,
     returnLineItems: 0,
     returnLineItemsWithLineItemRef: 0,
@@ -171,10 +274,21 @@ function summarizeReturnsRefunds(lines) {
     switch (idType(line)) {
       case "Order":
         s.orders += 1;
+        // `refunds` is a list field, so Shopify inlines it on the order line.
+        if (line.refunds?.length) {
+          s.refunds += line.refunds.length;
+          refundedOrders.add(line.id);
+        }
+        if (Number(line.totalRefundedSet?.shopMoney?.amount) > 0) s.ordersWithRefundTotal += 1;
         break;
       case "Refund":
         s.refunds += 1;
         refundedOrders.add(line.__parentId);
+        break;
+      case "LineItem":
+        s.lineItems += 1;
+        if (line.currentQuantity < line.quantity) s.lineItemsWithReducedCurrentQuantity += 1;
+        if (line.currentQuantity === 0) s.lineItemsFullyRemovedOrRefunded += 1;
         break;
       case "RefundLineItem":
         s.refundLineItems += 1;
@@ -306,7 +420,7 @@ function summarizeInventory(lines) {
 const SUMMARIZERS = {
   orders: summarizeOrders,
   returnsRefunds: summarizeReturnsRefunds,
-  everything: summarizeOrders,
+  everything: (lines) => ({ orderSide: summarizeOrders(lines), returnsAndRefunds: summarizeReturnsRefunds(lines) }),
   products: summarizeProducts,
   inventory: summarizeInventory,
 };
@@ -344,6 +458,64 @@ async function runProbes(admin) {
   return results;
 }
 
+// -------------------------------------------------------------- data checks
+
+const monthStart = (offset) => {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - offset, 1));
+};
+
+async function runDataChecks(admin) {
+  const gql = async (query) => {
+    const response = await admin.graphql(query);
+    const { data, errors } = await response.json();
+    if (errors?.length) throw new Error(errors.map((e) => e.message).join(" | "));
+    return data;
+  };
+  const out = {};
+
+  try {
+    // Orders per month for the last 30 months: history depth and seasonality.
+    const months = Array.from({ length: 30 }, (_, i) => i);
+    const fields = months
+      .map((i) => {
+        const from = monthStart(i).toISOString().slice(0, 10);
+        const to = monthStart(i - 1).toISOString().slice(0, 10);
+        return `m${i}: ordersCount(query: "created_at:>=${from} created_at:<${to}", limit: 200000) { count precision }`;
+      })
+      .join("\n");
+    const data = await gql(`query { ${fields} }`);
+    out.ordersPerMonth = Object.fromEntries(
+      months.map((i) => [monthStart(i).toISOString().slice(0, 7), data[`m${i}`].count]),
+    );
+  } catch (error) {
+    out.ordersPerMonth = { error: error.message };
+  }
+
+  try {
+    // Does totalShippingPriceSet already net off the Free Shipping discount?
+    const data = await gql(`query { orders(first: 100, query: "source_name:web OR source_name:304980787201", sortKey: CREATED_AT, reverse: true) { edges { node { totalShippingPriceSet { shopMoney { amount } } currentShippingPriceSet { shopMoney { amount } } shippingLines(first: 3) { edges { node { originalPriceSet { shopMoney { amount } } discountedPriceSet { shopMoney { amount } } } } } discountApplications(first: 5) { edges { node { __typename ... on AutomaticDiscountApplication { title } } } } } } } }`);
+    const buckets = {};
+    const samples = [];
+    const amount = (set) => Number(set?.shopMoney?.amount ?? 0);
+    for (const { node } of data.orders.edges) {
+      const lines = node.shippingLines.edges.map((e) => e.node);
+      const original = lines.reduce((sum, l) => sum + amount(l.originalPriceSet), 0);
+      const discounted = lines.reduce((sum, l) => sum + amount(l.discountedPriceSet), 0);
+      const total = amount(node.totalShippingPriceSet);
+      const current = amount(node.currentShippingPriceSet);
+      const freeShipping = node.discountApplications.edges.some((e) => e.node.__typename === "AutomaticDiscountApplication" && /free shipping/i.test(e.node.title ?? ""));
+      bump(buckets, `freeShippingDiscount=${freeShipping} | lines.original>0=${original > 0} | lines.discounted>0=${discounted > 0} | totalShippingPriceSet>0=${total > 0} | currentShippingPriceSet>0=${current > 0}`);
+      if (freeShipping && samples.length < 4) samples.push({ original, discounted, totalShippingPriceSet: total, currentShippingPriceSet: current });
+    }
+    out.shippingSemantics = { ordersChecked: data.orders.edges.length, buckets, freeShippingSamples: samples };
+  } catch (error) {
+    out.shippingSemantics = { error: error.message };
+  }
+
+  return out;
+}
+
 // ------------------------------------------------------------ route handlers
 
 const CURRENT_OPERATION_QUERY = `#graphql
@@ -358,33 +530,94 @@ function notFoundInProduction() {
   if (process.env.NODE_ENV === "production") throw new Response("Not found", { status: 404 });
 }
 
+const summaryCache = new Map();
+
 export const loader = async ({ request }) => {
   notFoundInProduction();
   const { admin } = await authenticate.admin(request);
-  const kind = new URL(request.url).searchParams.get("kind") ?? "orders";
+  const params = new URL(request.url).searchParams;
+  const kind = params.get("kind") ?? "orders";
+  const wantSummary = params.get("summarize") === "1";
+  const jobs = await db.reportJob.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 5,
+    select: { id: true, stage: true, error: true, ordersBulkOpId: true, productsBulkOpId: true, ordersFile: true, productsFile: true, updatedAt: true },
+  });
 
-  const response = await admin.graphql(CURRENT_OPERATION_QUERY);
-  const { data, errors } = await response.json();
-  if (errors?.length) return { error: JSON.stringify(errors), operation: null, summary: null, kind };
+  try {
+    const response = await admin.graphql(CURRENT_OPERATION_QUERY);
+    const { data, errors } = await response.json();
+    if (errors?.length) return { error: JSON.stringify(errors), operation: null, summary: null, kind, jobs };
 
-  const operation = data.currentBulkOperation;
-  let summary = null;
-  if (operation?.completedAt) {
-    operation.durationSeconds = Math.round((new Date(operation.completedAt) - new Date(operation.createdAt)) / 1000);
+    const operation = data.currentBulkOperation;
+    if (operation?.completedAt) {
+      operation.durationSeconds = Math.round((new Date(operation.completedAt) - new Date(operation.createdAt)) / 1000);
+    }
+    const safeOperation = operation && { ...operation, url: operation.url ? "(download url hidden)" : null };
+
+    let summary = null;
+    if (wantSummary && operation?.status === "COMPLETED" && operation.url && SUMMARIZERS[kind]) {
+      const cacheKey = `${operation.id}:${kind}`;
+      if (!summaryCache.has(cacheKey)) {
+        const file = await fetch(operation.url);
+        const text = await file.text();
+        const lines = text.split("\n").filter(Boolean).slice(0, MAX_LINES).map((line) => JSON.parse(line));
+        summaryCache.set(cacheKey, SUMMARIZERS[kind](lines));
+      }
+      summary = summaryCache.get(cacheKey);
+    }
+    return { error: null, operation: safeOperation, summary, kind, jobs };
+  } catch (error) {
+    return { error: `Loader failed: ${error.message}`, operation: null, summary: null, kind, jobs };
   }
-  if (operation?.status === "COMPLETED" && operation.url && SUMMARIZERS[kind]) {
-    const file = await fetch(operation.url);
-    const text = await file.text();
-    const lines = text.split("\n").filter(Boolean).slice(0, MAX_LINES).map((line) => JSON.parse(line));
-    summary = SUMMARIZERS[kind](lines);
-  }
-  return { error: null, operation: operation && { ...operation, url: operation.url ? "(download url hidden)" : null }, summary, kind };
 };
 
 export const action = async ({ request }) => {
   notFoundInProduction();
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
+
+  if (form.get("intent") === "startJob") {
+    try {
+      const range = { start: new Date(`${form.get("start")}T00:00:00Z`), end: new Date(`${form.get("end")}T23:59:59Z`) };
+      const job = await startReportJob({ db, admin, shop: session.shop, reportType: "debugPipeline", range });
+      return { jobStarted: { id: job.id, stage: job.stage }, error: null };
+    } catch (error) {
+      return { jobStarted: null, error: error.message };
+    }
+  }
+
+  // Stands in for Shopify's finish webhook: looks the real operation up at
+  // Shopify and runs the real chain (download, parse, start products export).
+  if (form.get("intent") === "simulateFinish") {
+    try {
+      const job = await db.reportJob.findUnique({ where: { id: form.get("jobId") } });
+      const operationId = job?.stage === STAGES.ORDERS_RUNNING ? job.ordersBulkOpId : job?.stage === STAGES.PRODUCTS_RUNNING ? job.productsBulkOpId : null;
+      if (!operationId) return { error: `Job is ${job?.stage ?? "missing"}; nothing is running to finish.` };
+
+      const result = await handleBulkOperationsFinish({
+        shop: session.shop,
+        payload: buildBulkOperationsFinishPayload({ id: operationId }),
+        admin,
+        db,
+        onFinished: (finished) => {
+          if (finished.operation.status === "RUNNING" || finished.operation.status === "CREATED") return;
+          advanceJob({ db, admin, result: finished }).then((o) => console.log(`Job ${job.id}: ${o.action}`)).catch((e) => console.error(e));
+        },
+      });
+      return { simulated: { operationStatus: result.operation?.status ?? null, note: result.operation && ["RUNNING", "CREATED"].includes(result.operation.status) ? "Still running at Shopify; try again shortly." : "Chain started in the background; refresh the job list." }, error: null };
+    } catch (error) {
+      return { simulated: null, error: error.message };
+    }
+  }
+
+  if (form.get("intent") === "checks") {
+    try {
+      return { checks: await runDataChecks(admin), error: null };
+    } catch (error) {
+      return { checks: null, error: error.message };
+    }
+  }
 
   if (form.get("intent") === "probe") {
     try {
@@ -411,7 +644,7 @@ export const action = async ({ request }) => {
 const day = (offset) => new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10);
 
 export default function DebugBulk() {
-  const { error, operation, summary, kind: loadedKind } = useLoaderData();
+  const { error, operation, summary, kind: loadedKind, jobs } = useLoaderData();
   const [searchParams, setSearchParams] = useSearchParams();
   const [kind, setKind] = useState(searchParams.get("kind") ?? loadedKind ?? "orders");
   const fetcher = useFetcher();
@@ -445,9 +678,16 @@ export default function DebugBulk() {
           </button>{" "}
           <button type="submit" name="intent" value="probe" disabled={busy}>
             Probe each field group
+          </button>{" "}
+          <button type="submit" name="intent" value="checks" disabled={busy}>
+            Run data checks
+          </button>{" "}
+          <button type="submit" name="intent" value="startJob" disabled={busy}>
+            Start pipeline job (orders, then products)
           </button>
         </fetcher.Form>
         {result?.error && <pre style={{ color: "crimson", whiteSpace: "pre-wrap" }}>{result.error}</pre>}
+        {result?.checks && <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(result.checks, null, 2)}</pre>}
         {result?.probes && (
           <table>
             <tbody>
@@ -462,13 +702,39 @@ export default function DebugBulk() {
             </tbody>
           </table>
         )}
+        {result?.jobStarted && <pre>{JSON.stringify(result.jobStarted, null, 2)}</pre>}
+        {result?.simulated && <pre>{JSON.stringify(result.simulated, null, 2)}</pre>}
         {result?.started && <pre>{JSON.stringify(result.started, null, 2)}</pre>}
         <p>
           <button type="button" onClick={() => setSearchParams({ kind })}>
-            Refresh status for &quot;{kind}&quot;
+            Refresh status
           </button>{" "}
-          (click until status is COMPLETED; the summary uses the selected type)
+          (click until status is COMPLETED), then{" "}
+          <button type="button" onClick={() => setSearchParams({ kind, summarize: "1" })}>
+            Load summary for &quot;{kind}&quot;
+          </button>{" "}
+          (large exports can take about a minute)
         </p>
+      </s-section>
+
+      <s-section heading="Pipeline jobs (latest 5)">
+        {jobs.length === 0 && <p>No jobs yet.</p>}
+        {jobs.map((job) => (
+          <fetcher.Form method="post" key={job.id} style={{ marginBottom: 12 }}>
+            <input type="hidden" name="jobId" value={job.id} />
+            <pre style={{ whiteSpace: "pre-wrap" }}>
+              {JSON.stringify({ id: job.id, stage: job.stage, error: job.error, ordersFile: job.ordersFile, productsFile: job.productsFile, updatedAt: job.updatedAt }, null, 2)}
+            </pre>
+            {(job.stage === "ORDERS_RUNNING" || job.stage === "PRODUCTS_RUNNING") && (
+              <button type="submit" name="intent" value="simulateFinish" disabled={busy}>
+                Simulate finish webhook for this job
+              </button>
+            )}
+          </fetcher.Form>
+        ))}
+        <button type="button" onClick={() => setSearchParams({ kind })}>
+          Refresh jobs
+        </button>
       </s-section>
 
       <s-section heading="Current operation">

@@ -1,19 +1,31 @@
-// Orders + line items bulk export (Dev Plan Step 13).
+// Orders export for Report 1 and the order side of Reports 3, 4 and 5
+// (Dev Plan Step 13, revised after validation on the client store).
 //
-// One query covers every order-side field of Report 1: order attribution
-// (channel, POS location), discounts, shipping, payment, and nested
-// line items (sku, barcode, quantity, price, discount allocations, taxes,
-// product id). Collections are NOT fetched here; they come from the separate
-// products export and are joined in Milestone 3 (Step 19).
+// ONE query carries everything: attribution (channel, POS location), payment,
+// discounts, shipping total, refunds, line items (sku, barcode, quantities,
+// prices, taxes, allocations, product id) and returns with their reasons.
+// Collections come from the separate products export and are joined in
+// Milestone 3 (Step 19).
 //
-// POS Staff is deliberately NOT queried: Order.staffMember / LineItem.staffMember
-// need the read_users scope, which Shopify only grants to Plus/Advanced stores
-// (the client is on Basic/Grow). Selecting it fails the whole export with
-// ACCESS_DENIED. Revisit if the client's plan changes.
+// Shopify bulk limits (verified against the live API):
+//   * at most 5 connections INCLUDING the root `orders`;
+//   * no connection inside a list field. `Order.refunds` is a list, so it is
+//     selected for totals only; refund line items cannot be fetched in bulk.
+// This query uses exactly 5 connections: orders, discountApplications,
+// lineItems, returns and returnLineItems. That is why shipping is read from
+// `currentShippingPriceSet` and not from the `shippingLines` connection.
 //
-// Bulk query limits: >= 1 connection, <= 5 connections, <= 2 levels of nesting.
-// This query uses 3 connections (discountApplications, shippingLines,
-// lineItems), all at depth 1.
+// Field choices proven on the client store:
+//   * `currentShippingPriceSet` is shipping AFTER discounts (0 for Free
+//     Shipping orders). `totalShippingPriceSet` is the pre-discount price and
+//     would overstate shipping, so it is NOT used for the report.
+//   * `lineItems.currentQuantity` is the quantity after returns/removals, which
+//     gives Net Items Sold. Canceled returns must not be counted: filter on
+//     `returns.status` when reading return reasons.
+//   * POS Staff is deliberately NOT queried: staffMember needs `read_users`,
+//     which Shopify only grants to Plus/Advanced stores (client is on Grow).
+//   * `returnReasonDefinition` is used for readable return reasons; the old
+//     `returnReason` enum is deprecated and coarser.
 
 import { startBulkOperation } from "./bulk.js";
 
@@ -33,10 +45,19 @@ export function buildOrdersBulkQuery({ start, end }) {
         sourceName
         retailLocation { id name }
         paymentGatewayNames
+        taxesIncluded
+        currentShippingPriceSet { ${MONEY} }
+        totalRefundedSet { ${MONEY} }
+        refunds {
+          id
+          createdAt
+          totalRefundedSet { ${MONEY} }
+        }
         discountApplications {
           edges {
             node {
               __typename
+              index
               allocationMethod
               targetSelection
               targetType
@@ -48,18 +69,6 @@ export function buildOrdersBulkQuery({ start, end }) {
               ... on DiscountCodeApplication { code }
               ... on ManualDiscountApplication { title description }
               ... on AutomaticDiscountApplication { title }
-              ... on ScriptDiscountApplication { title }
-            }
-          }
-        }
-        shippingLines {
-          edges {
-            node {
-              id
-              title
-              originalPriceSet { ${MONEY} }
-              discountedPriceSet { ${MONEY} }
-              taxLines { title rate priceSet { ${MONEY} } }
             }
           }
         }
@@ -72,6 +81,7 @@ export function buildOrdersBulkQuery({ start, end }) {
               quantity
               currentQuantity
               originalUnitPriceSet { ${MONEY} }
+              discountedUnitPriceAfterAllDiscountsSet { ${MONEY} }
               discountAllocations {
                 allocatedAmountSet { ${MONEY} }
                 discountApplication { index }
@@ -79,6 +89,26 @@ export function buildOrdersBulkQuery({ start, end }) {
               taxLines { title rate priceSet { ${MONEY} } }
               variant { id barcode }
               product { id }
+            }
+          }
+        }
+        returns {
+          edges {
+            node {
+              id
+              status
+              returnLineItems {
+                edges {
+                  node {
+                    ... on ReturnLineItem {
+                      id
+                      quantity
+                      returnReasonDefinition { name handle }
+                      fulfillmentLineItem { lineItem { id } }
+                    }
+                  }
+                }
+              }
             }
           }
         }

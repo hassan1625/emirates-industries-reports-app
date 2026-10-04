@@ -4,6 +4,10 @@ import { ServerRouter } from "react-router";
 import { createReadableStreamFromReadable } from "@react-router/node";
 import { isbot } from "isbot";
 import { addDocumentResponseHeaders } from "./shopify.server";
+import { startJobPoller } from "./pipeline/poller.server";
+
+// Fallback for dropped webhooks and interrupted jobs (Dev Plan Step 16).
+startJobPoller();
 
 export const streamTimeout = 5000;
 

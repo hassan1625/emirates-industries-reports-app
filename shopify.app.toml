@@ -20,6 +20,10 @@ api_version = "2026-10"
   uri = "/webhooks/app/scopes_update"
   topics = [ "app/scopes_update" ]
 
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/bulk-operations-finish"
+  topics = [ "bulk_operations/finish" ]
+
 [auth]
 redirect_urls = [ "https://seismic-untold-discount.ngrok-free.dev/api/auth" ]
 

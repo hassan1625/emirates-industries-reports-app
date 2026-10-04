@@ -44,6 +44,12 @@ model ReportJob {
   ordersBulkOpId   String?
   productsBulkOpId String?
   resultFileUrl    String?
+  // Pipeline bookkeeping (Step 15): last error, downloaded export files on
+  // disk, and the request (date range, filters, fields) as JSON text.
+  error            String?
+  ordersFile       String?
+  productsFile     String?
+  params           String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
