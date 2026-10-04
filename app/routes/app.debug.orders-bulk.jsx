@@ -11,6 +11,9 @@ import db from "../db.server";
 import { startReportJob } from "../pipeline/start-job";
 import { handleBulkOperationsFinish } from "../pipeline/bulk-finish";
 import { advanceJob } from "../pipeline/job-chain";
+import { ensureDefaultMappings } from "../pipeline/location-mapping";
+import { previewJob } from "../pipeline/report-preview";
+import { getReportFields } from "../config";
 import { STAGES } from "../pipeline/job-stages";
 import { buildBulkOperationsFinishPayload } from "../testing/bulk-operations-finish";
 
@@ -148,6 +151,24 @@ const KINDS = {
             }
           }
         }
+      }
+    }
+  }
+}`,
+  },
+  paymentCheck: {
+    label: "PAYMENT CHECK: net payment vs current total per order (refund discrepancies)",
+    build: (range) => `{
+  orders(query: ${JSON.stringify(buildOrdersSearchQuery(range))}, sortKey: CREATED_AT) {
+    edges {
+      node {
+        id
+        name
+        createdAt
+        currentTotalPriceSet { ${MONEY} }
+        netPaymentSet { ${MONEY} }
+        totalRefundedSet { ${MONEY} }
+        refunds { id createdAt }
       }
     }
   }
@@ -417,7 +438,54 @@ function summarizeInventory(lines) {
   return s;
 }
 
+// Tests whether "net payment - current order total" reproduces Shopify's
+// REFUND_DISCREPANCY amounts (money kept after an exchange where the returned
+// item was worth more than the replacement).
+function summarizePaymentCheck(lines) {
+  const amountOf = (set) => Number(set?.shopMoney?.amount ?? 0);
+  const s = {
+    orders: 0,
+    ordersWithRefunds: 0,
+    ordersWithPositiveGap: 0,
+    ordersWithNegativeGap: 0,
+    positiveGapOrdersWithRefunds: 0,
+    positiveGapOrdersWithoutRefunds: 0,
+    positiveGapTotal: 0,
+    negativeGapTotal: 0,
+    positiveGapByRefundMonth: {},
+    ordersWithPositiveGapAndNoRefund_examples: [],
+  };
+  const round = (n) => Math.round(n * 100) / 100;
+  for (const order of lines) {
+    if (!order.currentTotalPriceSet) continue;
+    s.orders += 1;
+    const hasRefund = (order.refunds ?? []).length > 0;
+    if (hasRefund) s.ordersWithRefunds += 1;
+    const gap = round(amountOf(order.netPaymentSet) - amountOf(order.currentTotalPriceSet));
+    if (gap > 0.005) {
+      s.ordersWithPositiveGap += 1;
+      s.positiveGapTotal += gap;
+      if (hasRefund) {
+        s.positiveGapOrdersWithRefunds += 1;
+        const last = order.refunds[order.refunds.length - 1].createdAt;
+        const month = new Date(new Date(last).getTime() + 4 * 3600 * 1000).toISOString().slice(0, 7); // store UTC+4
+        s.positiveGapByRefundMonth[month] = round((s.positiveGapByRefundMonth[month] ?? 0) + gap);
+      } else {
+        s.positiveGapOrdersWithoutRefunds += 1;
+        if (s.ordersWithPositiveGapAndNoRefund_examples.length < 3) s.ordersWithPositiveGapAndNoRefund_examples.push({ name: order.name, gap });
+      }
+    } else if (gap < -0.005) {
+      s.ordersWithNegativeGap += 1;
+      s.negativeGapTotal += gap;
+    }
+  }
+  s.positiveGapTotal = round(s.positiveGapTotal);
+  s.negativeGapTotal = round(s.negativeGapTotal);
+  return s;
+}
+
 const SUMMARIZERS = {
+  paymentCheck: summarizePaymentCheck,
   orders: summarizeOrders,
   returnsRefunds: summarizeReturnsRefunds,
   everything: (lines) => ({ orderSide: summarizeOrders(lines), returnsAndRefunds: summarizeReturnsRefunds(lines) }),
@@ -456,6 +524,54 @@ async function runProbes(admin) {
     }
   }
   return results;
+}
+
+// Dev-only: everything Shopify holds about one order's refunds, adjustments and
+// exchanges, to explain a difference between our figures and Shopify's.
+const INSPECT_ORDER_QUERY = `#graphql
+  query inspectOrder($q: String!) {
+    orders(first: 1, query: $q) { edges { node {
+      name
+      totalPriceSet { shopMoney { amount } }
+      currentTotalPriceSet { shopMoney { amount } }
+      currentSubtotalPriceSet { shopMoney { amount } }
+      totalRefundedSet { shopMoney { amount } }
+      currentTotalTaxSet { shopMoney { amount } }
+      refunds {
+        id createdAt note
+        totalRefundedSet { shopMoney { amount } }
+        orderAdjustments(first: 10) { edges { node { reason amountSet { shopMoney { amount } } taxAmountSet { shopMoney { amount } } } } }
+        refundLineItems(first: 20) { edges { node { quantity restockType subtotalSet { shopMoney { amount } } totalTaxSet { shopMoney { amount } } lineItem { sku } } } }
+      }
+      returns(first: 5) { edges { node { id status exchangeLineItems(first: 10) { edges { node { id quantity } } } } } }
+    } } }
+  }`;
+
+async function inspectOrder(admin, orderName) {
+  const name = String(orderName).trim().replace(/^#?/, "#");
+  const response = await admin.graphql(INSPECT_ORDER_QUERY, { variables: { q: `name:${name}` } });
+  const { data, errors } = await response.json();
+  if (errors?.length) throw new Error(errors.map((e) => e.message).join(" | "));
+  const order = data.orders.edges[0]?.node;
+  if (!order) return { error: `No order named ${name}` };
+  const money = (set) => set?.shopMoney?.amount ?? null;
+  const nodes = (connection) => (connection?.edges ?? []).map((edge) => edge.node);
+  return {
+    name: order.name,
+    totalPrice: money(order.totalPriceSet),
+    currentTotalPrice: money(order.currentTotalPriceSet),
+    currentSubtotal: money(order.currentSubtotalPriceSet),
+    currentTotalTax: money(order.currentTotalTaxSet),
+    totalRefunded: money(order.totalRefundedSet),
+    refunds: order.refunds.map((refund) => ({
+      createdAt: refund.createdAt,
+      note: refund.note,
+      totalRefunded: money(refund.totalRefundedSet),
+      orderAdjustments: nodes(refund.orderAdjustments).map((a) => ({ reason: a.reason, amount: money(a.amountSet), tax: money(a.taxAmountSet) })),
+      refundLines: nodes(refund.refundLineItems).map((l) => ({ sku: l.lineItem?.sku, quantity: l.quantity, restockType: l.restockType, subtotal: money(l.subtotalSet), tax: money(l.totalTaxSet) })),
+    })),
+    returns: nodes(order.returns).map((r) => ({ status: r.status, exchangeLines: nodes(r.exchangeLineItems).map((x) => ({ quantity: x.quantity })) })),
+  };
 }
 
 // -------------------------------------------------------------- data checks
@@ -534,10 +650,11 @@ const summaryCache = new Map();
 
 export const loader = async ({ request }) => {
   notFoundInProduction();
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const params = new URL(request.url).searchParams;
   const kind = params.get("kind") ?? "orders";
   const wantSummary = params.get("summarize") === "1";
+  const locationMappings = await db.locationMapping.findMany({ where: { shop: session.shop }, select: { sourceName: true, locationId: true, locationName: true } });
   const jobs = await db.reportJob.findMany({
     orderBy: { createdAt: "desc" },
     take: 5,
@@ -547,7 +664,7 @@ export const loader = async ({ request }) => {
   try {
     const response = await admin.graphql(CURRENT_OPERATION_QUERY);
     const { data, errors } = await response.json();
-    if (errors?.length) return { error: JSON.stringify(errors), operation: null, summary: null, kind, jobs };
+    if (errors?.length) return { error: JSON.stringify(errors), operation: null, summary: null, kind, jobs, locationMappings };
 
     const operation = data.currentBulkOperation;
     if (operation?.completedAt) {
@@ -566,9 +683,9 @@ export const loader = async ({ request }) => {
       }
       summary = summaryCache.get(cacheKey);
     }
-    return { error: null, operation: safeOperation, summary, kind, jobs };
+    return { error: null, operation: safeOperation, summary, kind, jobs, locationMappings };
   } catch (error) {
-    return { error: `Loader failed: ${error.message}`, operation: null, summary: null, kind, jobs };
+    return { error: `Loader failed: ${error.message}`, operation: null, summary: null, kind, jobs, locationMappings };
   }
 };
 
@@ -576,6 +693,27 @@ export const action = async ({ request }) => {
   notFoundInProduction();
   const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
+
+  // Dev-only report preview: totals and a row sample for a finished job.
+  if (form.get("intent") === "preview") {
+    try {
+      const job = await db.reportJob.findUnique({ where: { id: form.get("previewJobId") } });
+      if (!job || job.shop !== session.shop) return { error: "Job not found" };
+      const started = Date.now();
+      const preview = await previewJob({ db, job, sampleSize: Number(form.get("sampleSize")) || 50 });
+      return { preview: { ...preview, jobId: job.id, seconds: (Date.now() - started) / 1000, params: job.params }, error: null };
+    } catch (error) {
+      return { preview: null, error: error.message };
+    }
+  }
+
+  if (form.get("intent") === "seedMappings") {
+    try {
+      return { seeded: await ensureDefaultMappings({ db, admin, shop: session.shop }), error: null };
+    } catch (error) {
+      return { seeded: null, error: error.message };
+    }
+  }
 
   if (form.get("intent") === "startJob") {
     try {
@@ -611,6 +749,14 @@ export const action = async ({ request }) => {
     }
   }
 
+  if (form.get("intent") === "inspectOrder") {
+    try {
+      return { inspected: await inspectOrder(admin, form.get("orderName")), error: null };
+    } catch (error) {
+      return { inspected: null, error: error.message };
+    }
+  }
+
   if (form.get("intent") === "checks") {
     try {
       return { checks: await runDataChecks(admin), error: null };
@@ -641,10 +787,57 @@ export const action = async ({ request }) => {
   }
 };
 
+const reportFields = getReportFields("generalSales");
+const fmt = (n) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const TOTAL_COLUMNS = [
+  ["orders", "Orders"],
+  ["itemsSold", "Items"],
+  ["gross", "Gross"],
+  ["discounts", "Discount"],
+  ["returns", "Returns"],
+  ["net", "Net"],
+  ["shipping", "Ship ex VAT"],
+  ["taxes", "Tax"],
+  ["total", "Total"],
+];
+
+// Temporary debug component; prop types are not worth declaring.
+/* eslint-disable react/prop-types */
+function TotalsTable({ rows, keyLabel }) {
+  return (
+    <table style={{ borderCollapse: "collapse", marginBottom: 16 }}>
+      <thead>
+        <tr>
+          <th style={{ textAlign: "left", padding: "2px 10px" }}>{keyLabel}</th>
+          {TOTAL_COLUMNS.map(([key, label]) => (
+            <th key={key} style={{ textAlign: "right", padding: "2px 10px" }}>
+              {label}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr key={row.key}>
+            <td style={{ padding: "2px 10px" }}>{row.key}</td>
+            {TOTAL_COLUMNS.map(([key]) => (
+              <td key={key} style={{ textAlign: "right", padding: "2px 10px" }}>
+                {key === "orders" || key === "itemsSold" ? row[key].toLocaleString("en-US") : fmt(row[key])}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+/* eslint-enable react/prop-types */
+
 const day = (offset) => new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10);
 
 export default function DebugBulk() {
-  const { error, operation, summary, kind: loadedKind, jobs } = useLoaderData();
+  const { error, operation, summary, kind: loadedKind, jobs, locationMappings } = useLoaderData();
   const [searchParams, setSearchParams] = useSearchParams();
   const [kind, setKind] = useState(searchParams.get("kind") ?? loadedKind ?? "orders");
   const fetcher = useFetcher();
@@ -684,8 +877,16 @@ export default function DebugBulk() {
           </button>{" "}
           <button type="submit" name="intent" value="startJob" disabled={busy}>
             Start pipeline job (orders, then products)
+          </button>{" "}
+          <button type="submit" name="intent" value="seedMappings" disabled={busy}>
+            Seed location mappings
+          </button>{" "}
+          <input type="text" name="orderName" placeholder="#23416" style={{ width: 90 }} />{" "}
+          <button type="submit" name="intent" value="inspectOrder" disabled={busy}>
+            Inspect order refunds
           </button>
         </fetcher.Form>
+        {result?.inspected && <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(result.inspected, null, 2)}</pre>}
         {result?.error && <pre style={{ color: "crimson", whiteSpace: "pre-wrap" }}>{result.error}</pre>}
         {result?.checks && <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(result.checks, null, 2)}</pre>}
         {result?.probes && (
@@ -702,6 +903,7 @@ export default function DebugBulk() {
             </tbody>
           </table>
         )}
+        {result?.seeded && <pre>{JSON.stringify(result.seeded, null, 2)}</pre>}
         {result?.jobStarted && <pre>{JSON.stringify(result.jobStarted, null, 2)}</pre>}
         {result?.simulated && <pre>{JSON.stringify(result.simulated, null, 2)}</pre>}
         {result?.started && <pre>{JSON.stringify(result.started, null, 2)}</pre>}
@@ -715,6 +917,73 @@ export default function DebugBulk() {
           </button>{" "}
           (large exports can take about a minute)
         </p>
+      </s-section>
+
+      <s-section heading="Report preview (testing only: totals and sample rows for a finished job)">
+        <fetcher.Form method="post">
+          <select name="previewJobId" defaultValue={jobs.find((j) => j.stage === "DATA_READY")?.id}>
+            {jobs.filter((j) => j.stage === "DATA_READY").map((j) => (
+              <option key={j.id} value={j.id}>
+                {j.id} ({new Date(j.updatedAt).toLocaleString()})
+              </option>
+            ))}
+          </select>{" "}
+          <label>
+            sample rows <input type="number" name="sampleSize" defaultValue={50} min={0} max={500} style={{ width: 70 }} />
+          </label>{" "}
+          <button type="submit" name="intent" value="preview" disabled={busy || !jobs.some((j) => j.stage === "DATA_READY")}>
+            Preview report
+          </button>
+          {busy && " working..."}
+        </fetcher.Form>
+        {result?.preview && (
+          <div>
+            <p>
+              Job {result.preview.jobId} computed in {result.preview.seconds.toFixed(1)}s. Dates are in {result.preview.timeZone}. Request: <code>{result.preview.params}</code>
+            </p>
+            <h4>Overall</h4>
+            <TotalsTable rows={[{ key: "ALL", ...result.preview.totals }]} keyLabel="" />
+            <h4>By month</h4>
+            <TotalsTable rows={result.preview.byMonth} keyLabel="Month" />
+            <h4>By day</h4>
+            <TotalsTable rows={result.preview.byDay} keyLabel="Day" />
+            <h4>By location</h4>
+            <TotalsTable rows={result.preview.byLocation} keyLabel="Location" />
+            <h4>By sales channel</h4>
+            <TotalsTable rows={result.preview.byChannel} keyLabel="Channel" />
+            <h4>By collection (rows, not orders)</h4>
+            <TotalsTable rows={result.preview.byCollection} keyLabel="Collection" />
+            <h4>First {result.preview.sample.length} rows</h4>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ borderCollapse: "collapse", fontSize: 12 }}>
+                <thead>
+                  <tr>
+                    {reportFields.map((field) => (
+                      <th key={field.key} style={{ textAlign: "left", padding: "2px 8px", whiteSpace: "nowrap" }}>
+                        {field.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.preview.sample.map((values, index) => (
+                    <tr key={index}>
+                      {reportFields.map((field) => (
+                        <td key={field.key} style={{ padding: "2px 8px", whiteSpace: "nowrap" }}>
+                          {values[field.key] === null || values[field.key] === undefined ? "" : typeof values[field.key] === "number" ? values[field.key] : String(values[field.key])}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </s-section>
+
+      <s-section heading="Location mappings (channel to location)">
+        {locationMappings.length === 0 ? <p>None yet. Click &quot;Seed location mappings&quot;.</p> : <pre>{JSON.stringify(locationMappings, null, 2)}</pre>}
       </s-section>
 
       <s-section heading="Pipeline jobs (latest 5)">

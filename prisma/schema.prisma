@@ -56,3 +56,20 @@ model ReportJob {
   @@index([shop, createdAt])
   @@index([stage])
 }
+
+// Which Shopify location an order is reported under when it has no POS
+// location of its own (Online Store, Mobile App). Data, not code, so a new
+// physical location or a different target is an edit here (Dev Plan Step 20).
+// Keyed per shop by the order's `sourceName`; the location is stored by id
+// (stable) with its name as Shopify spelled it when the row was written.
+model LocationMapping {
+  id           String   @id @default(cuid())
+  shop         String
+  sourceName   String
+  locationId   String
+  locationName String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([shop, sourceName])
+}

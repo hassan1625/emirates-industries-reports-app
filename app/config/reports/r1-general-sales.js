@@ -18,7 +18,9 @@ export const generalSalesReport = {
     { key: "orderDate", label: "Order Date", type: "date", source: { operation: "orders", path: "createdAt" } },
     { key: "salesChannel", label: "Sales Channel", type: "string", source: { operation: "orders", path: "sourceName" } },
     { key: "posLocation", ref: "locationName", label: "POS Location" },
-    { key: "posStaff", label: "POS Staff", type: "string", source: { operation: "orders", path: "staffMember.name" } },
+    // Unavailable: Shopify only grants the staff scope (read_users) to Plus/Advanced stores
+    // and the client is on Grow. The column stays, empty, until the client decides.
+    { key: "posStaff", label: "POS Staff", type: "string", available: false, source: { operation: "orders", path: "staffMember.name" } },
     { key: "collectionName", ref: "collectionName" },
     { key: "productTitle", ref: "productTitle" },
     { key: "sku", ref: "sku", label: "Product Variant SKU" },

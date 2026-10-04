@@ -1,0 +1,7426 @@
+{
+  "source": "pipeline output for the orders in general-report.json",
+  "orders": [
+    {
+      "id": "gid://shopify/Order/6042785906765",
+      "name": "#26-1407",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14784697401421",
+          "sku": "IAT-TRSR-0013-L",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "61.95",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.95",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14784697434189",
+          "sku": "IAT-TSHT-0003-XL",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.2",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14784697466957",
+          "sku": "IAT-TRSR-0015-L",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "91.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "8.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14784697499725",
+          "sku": "IAT-TRSR-0015-XL",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "91.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.35",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14784697532493",
+          "sku": "IAT-TSHT-0024-XL",
+          "quantity": 3,
+          "currentQuantity": 3,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "5.55",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6042786365517",
+      "name": "#23-1451",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14784698351693",
+          "sku": "IAT-TSHT-0003-XL",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.2",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14784698384461",
+          "sku": "IAT-TRSR-0013-XL",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "61.95",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.95",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045308158029",
+      "name": "#22372",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789527896141",
+          "sku": "IAT-JACT-0001-L",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "14.28",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "6.12",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045308977229",
+      "name": "#22373",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789529239629",
+          "sku": "ADK-TRSR-0002-26",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789529272397",
+          "sku": "ADK-TSHT-0003-24",
+          "quantity": 4,
+          "currentQuantity": 4,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "6.8",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045309141069",
+      "name": "#22374",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789529763917",
+          "sku": "IAT-TSHT-0003-S",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "5.04",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 1
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.16",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789529796685",
+          "sku": "IAT-BLSE-0001-XXS",
+          "quantity": 2,
+          "currentQuantity": 0,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "37.8",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "7.56",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 1
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.24",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789529829453",
+          "sku": "IAT-SKRT-0001-XS",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "52.5",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "10.5",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 1
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789529862221",
+          "sku": "IAT-JACT-0001-M",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "7.14",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 1
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.06",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14864444063821",
+          "sku": "IAT-BLSE-0001-M",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "37.8",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "7.56",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.24",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045309468749",
+      "name": "#22375",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789530484813",
+          "sku": "AIS-TSHT-0002-12",
+          "quantity": 4,
+          "currentQuantity": 4,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "72.45",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "13.8",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045309993037",
+      "name": "#22376",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789531533389",
+          "sku": "IAT-TRSR-0015-4XL",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "91.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "18.27",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "7.83",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789531566157",
+          "sku": "IAT-TSHT-0024-2XL",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "7.77",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.33",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045310255181",
+      "name": "#22377",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789532319821",
+          "sku": "ADK-TRSR-0002-18",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532352589",
+          "sku": "ADK-TSHT-0001-12",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532385357",
+          "sku": "ADK-TSHT-0003-12",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532418125",
+          "sku": "ADK-TRSR-0001-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "48.3",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.3",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532450893",
+          "sku": "ADK-TSHT-0002-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532483661",
+          "sku": "ADK-TRSR-0002-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532516429",
+          "sku": "BAG-RUSB-0001-001",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "0.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "0.01",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045310287949",
+      "name": "#22378",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789532549197",
+          "sku": "IAT-TSHT-0024-L",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532581965",
+          "sku": "IAT-TRSR-0015-L",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "91.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "8.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532614733",
+          "sku": "IAT-TSHT-0003-L",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532647501",
+          "sku": "IAT-SHOR-0001-L",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "49.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.35",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532680269",
+          "sku": "IAT-JACT-0001-L",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532713037",
+          "sku": "IAT-BLSE-0001-M",
+          "quantity": 3,
+          "currentQuantity": 3,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "37.8",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "5.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532745805",
+          "sku": "IAT-SKRT-0001-M",
+          "quantity": 3,
+          "currentQuantity": 3,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "52.5",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "7.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532778573",
+          "sku": "IAT-JACT-0001-M",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532811341",
+          "sku": "IAT-TSHT-0003-M",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.2",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789532844109",
+          "sku": "IAT-TRSR-0013-M",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "61.95",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.95",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045311860813",
+      "name": "#22379",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789536448589",
+          "sku": "ADK-TSHT-0002-12",
+          "quantity": 1,
+          "currentQuantity": 0,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789536481357",
+          "sku": "ADK-TRSR-0002-10",
+          "quantity": 2,
+          "currentQuantity": 0,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789536514125",
+          "sku": "ADK-JACT-0001-10",
+          "quantity": 1,
+          "currentQuantity": 0,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789536546893",
+          "sku": "ADK-TRSR-0001-8",
+          "quantity": 2,
+          "currentQuantity": 0,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "48.3",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.6",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789536579661",
+          "sku": "ADK-TSHT-0003-12",
+          "quantity": 2,
+          "currentQuantity": 0,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789536612429",
+          "sku": "ADK-TSHT-0001-12",
+          "quantity": 2,
+          "currentQuantity": 0,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789536645197",
+          "sku": "BAG-RUSB-0001-001",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "0.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "0.01",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789630984269",
+          "sku": "ADK-TRSR-0001-MTM",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "48.3",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.6",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789631017037",
+          "sku": "ADK-TRSR-0002-MTM",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789631049805",
+          "sku": "ADK-TSHT-0003-MTM",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789631082573",
+          "sku": "ADK-TSHT-0001-MTM",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789631115341",
+          "sku": "ADK-TSHT-0002-MTM",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789631148109",
+          "sku": "ADK-JACT-0001-MTM",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045313400909",
+      "name": "#22380",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789539659853",
+          "sku": "BAG-RUSB-0001-001",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "0.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "0.01",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789539692621",
+          "sku": "ADK-TSHT-0001-8",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789539725389",
+          "sku": "ADK-DRES-0001-7",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "49.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789539758157",
+          "sku": "ADK-TRSR-0001-6",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "48.3",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.6",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789539790925",
+          "sku": "ADK-TSHT-0003-8",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045313499213",
+      "name": "#22381",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789540085837",
+          "sku": "IAT-TRSR-0015-4XL",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "91.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "8.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789540118605",
+          "sku": "IAT-JACT-0001-6XL",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789540151373",
+          "sku": "IAT-TSHT-0024-5XL",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789540184141",
+          "sku": "IAT-TRSR-0015-6XL",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "91.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "8.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045313859661",
+      "name": "#22382",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789540675661",
+          "sku": "ADK-TRSR-0002-8",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789540708429",
+          "sku": "ADK-TRSR-0002-4",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045317169229",
+      "name": "#22383",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789547982925",
+          "sku": "ADK-JACT-0001-16",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "8.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789548015693",
+          "sku": "ADK-TRSR-0002-18",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045317365837",
+      "name": "#22384",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789548310605",
+          "sku": "ADK-DRES-0001-7",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "49.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789548343373",
+          "sku": "ADK-TSHT-0003-8",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789548376141",
+          "sku": "ADK-TRSR-0002-6",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789548408909",
+          "sku": "ADK-TRSR-0002-10",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789548441677",
+          "sku": "ADK-TSHT-0003-10",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789548474445",
+          "sku": "ADK-TSHT-0002-10",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789548507213",
+          "sku": "BAG-RUSB-0001-001",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "0.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "0.01",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789548539981",
+          "sku": "ADK-JACT-0001-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789548572749",
+          "sku": "ADK-JACT-0001-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045323296845",
+      "name": "#22385",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789559976013",
+          "sku": "ADK-TRSR-0002-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789560008781",
+          "sku": "ADK-TSHT-0003-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789560041549",
+          "sku": "ADK-TRSR-0002-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789560074317",
+          "sku": "ADK-DRES-0001-7",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "49.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045328900173",
+      "name": "#22386",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789573017677",
+          "sku": "BAG-RUSB-0001-001",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "0.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "0.02",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573050445",
+          "sku": "ADK-JACT-0001-14",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "8.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573083213",
+          "sku": "ADK-JACT-0001-16",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "8.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573115981",
+          "sku": "ADK-JACT-0001-12",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "8.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573148749",
+          "sku": "ADK-JACT-0001-8",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "8.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573181517",
+          "sku": "ADK-PINF-0002-16",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "59.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "5.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573214285",
+          "sku": "ADK-PINF-0002-12",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "59.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "5.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573247053",
+          "sku": "ADK-TRSR-0002-6",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573279821",
+          "sku": "ADK-TRSR-0002-10",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573312589",
+          "sku": "ADK-TRSR-0002-16",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573345357",
+          "sku": "ADK-TRSR-0002-14",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573378125",
+          "sku": "ADK-TSHT-0001-12",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573410893",
+          "sku": "ADK-TSHT-0001-14",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573443661",
+          "sku": "ADK-TSHT-0001-8",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573476429",
+          "sku": "ADK-TSHT-0001-16",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573509197",
+          "sku": "ADK-TSHT-0003-14",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573541965",
+          "sku": "ADK-TSHT-0003-8",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573574733",
+          "sku": "ADK-TSHT-0003-12",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789573607501",
+          "sku": "ADK-TSHT-0003-16",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045330669645",
+      "name": "#22387",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789576851533",
+          "sku": "ADK-TRSR-0002-14",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "4.73",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.03",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789576884301",
+          "sku": "ADK-TRSR-0002-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "4.73",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.02",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789576917069",
+          "sku": "ADK-TRSR-0002-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "4.73",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.02",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789576949837",
+          "sku": "ADK-TSHT-0003-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "3.57",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.53",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789576982605",
+          "sku": "ADK-TSHT-0003-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "3.56",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.53",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789577015373",
+          "sku": "ADK-TSHT-0003-14",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "3.56",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.53",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045331587149",
+      "name": "#22388",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "cash"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789579309133",
+          "sku": "IAT-BLSE-0001-XL",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "37.8",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.6",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789579341901",
+          "sku": "IAT-SKRT-0001-XL",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "52.5",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "5.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789579374669",
+          "sku": "IAT-JACT-0001-2XL",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045332013133",
+      "name": "#22389",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789580587085",
+          "sku": "IAT-SKRT-0001-L",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "52.5",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789580619853",
+          "sku": "IAT-BLSE-0001-M",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "37.8",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.6",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045333782605",
+      "name": "#22390",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789583700045",
+          "sku": "IAT-TRSR-0015-XS",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "91.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.35",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789583732813",
+          "sku": "IAT-TRSR-0015-S",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "91.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.35",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789583765581",
+          "sku": "IAT-TSHT-0024-M",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789583798349",
+          "sku": "IAT-TSHT-0003-M",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789583831117",
+          "sku": "IAT-TRSR-0013-S",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "61.95",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.95",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789583863885",
+          "sku": "IAT-TRSR-0013-M",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "61.95",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.95",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045337387085",
+      "name": "#22391",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789591302221",
+          "sku": "BAG-RUSB-0001-001",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "0.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "0.01",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789591334989",
+          "sku": "AIS-PINF-0003-7",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "123.9",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "5.9",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789591367757",
+          "sku": "AIS-BLSE-0008-8",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "85.05",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.05",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789591400525",
+          "sku": "AIS-TSHT-0001-8",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "65.1",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.1",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789591433293",
+          "sku": "AIS-TRSR-0014-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "72.45",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.45",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045339779149",
+      "name": "#22392",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789595758669",
+          "sku": "AIS-TRSR-0005-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "88.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.2",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789595791437",
+          "sku": "AIS-SHRT-0010-5",
+          "quantity": 1,
+          "currentQuantity": 0,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "67.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.2",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789595824205",
+          "sku": "AIS-TRSR-0014-5",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "72.45",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.45",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789595856973",
+          "sku": "AIS-TSHT-0001-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "65.1",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.1",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14848193232973",
+          "sku": "AIS-SHRT-0010-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "67.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.2",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045340467277",
+      "name": "#22393",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789596905549",
+          "sku": "ADK-TSHT-0001-22",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.85",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789596938317",
+          "sku": "ADK-TSHT-0002-20",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789596971085",
+          "sku": "ADK-TSHT-0003-20",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789597003853",
+          "sku": "ADK-TRSR-0001-24",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "48.3",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.3",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789597036621",
+          "sku": "ADK-JACT-0001-18",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789597069389",
+          "sku": "BAG-RUSB-0001-001",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "0.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "0.01",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045341188173",
+      "name": "#22394",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789598740557",
+          "sku": "ADK-TSHT-0003-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789598773325",
+          "sku": "ADK-TSHT-0003-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789598806093",
+          "sku": "ADK-TSHT-0002-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789598838861",
+          "sku": "ADK-TSHT-0003-22",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789598871629",
+          "sku": "ADK-TSHT-0002-22",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789598904397",
+          "sku": "ADK-TSHT-0002-24",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789598937165",
+          "sku": "ADK-TSHT-0003-26",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789598969933",
+          "sku": "ADK-TSHT-0002-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045346037837",
+      "name": "#22395",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789609914445",
+          "sku": "NAN-UNIF-0029-L",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "100.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "10.0",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.28",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789609947213",
+          "sku": "NAN-UNIF-0030-L",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "100.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "10.0",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.29",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789609979981",
+          "sku": "IAT-JACT-0001-M",
+          "quantity": 3,
+          "currentQuantity": 3,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "10.2",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789610012749",
+          "sku": "IAT-TRSR-0013-S",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "61.95",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "5.9",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789610045517",
+          "sku": "IAT-TSHT-0003-M",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.2",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789610078285",
+          "sku": "IAT-TSHT-0003-S",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.2",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789610111053",
+          "sku": "IAT-SKRT-0001-XS",
+          "quantity": 4,
+          "currentQuantity": 4,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "52.5",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "10.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789610143821",
+          "sku": "IAT-BLSE-0001-S",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "37.8",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.6",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789610176589",
+          "sku": "IAT-BLSE-0001-M",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "37.8",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.6",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045348429901",
+      "name": "#22396",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789615681613",
+          "sku": "ADK-DRES-0001-4",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "49.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789615714381",
+          "sku": "ADK-TSHT-0002-4",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789615747149",
+          "sku": "ADK-JACT-0001-4",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045358981197",
+      "name": "#22397",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789637734477",
+          "sku": "IAT-JACT-0001-L",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045362192461",
+      "name": "#22398",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789644255309",
+          "sku": "ADK-TSHT-0002-24",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789644288077",
+          "sku": "ADK-TSHT-0003-12",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789644320845",
+          "sku": "ADK-TSHT-0003-24",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789644353613",
+          "sku": "ADK-TRSR-0001-26",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "48.3",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.6",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045362356301",
+      "name": "#22399",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789644517453",
+          "sku": "ADK-TRSR-0002-14",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789644550221",
+          "sku": "ADK-TSHT-0003-14",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789644582989",
+          "sku": "ADK-PINF-0001-14",
+          "quantity": 3,
+          "currentQuantity": 3,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "59.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "8.55",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789644615757",
+          "sku": "ADK-TSHT-0001-14",
+          "quantity": 3,
+          "currentQuantity": 3,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "5.55",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045363241037",
+      "name": "#22400",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789646024781",
+          "sku": "AIS-SHRT-0008-18",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "86.1",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "8.2",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789646057549",
+          "sku": "AIS-TRSR-0007-18",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "101.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.85",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789646090317",
+          "sku": "AIS-TRSR-0015-12",
+          "quantity": 3,
+          "currentQuantity": 3,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "91.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "13.05",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789646123085",
+          "sku": "AIS-TSHT-0002-16",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "72.45",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "6.9",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789646155853",
+          "sku": "AIS-JACT-0004-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "98.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789646188621",
+          "sku": "BAG-RUSB-0001-001",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "0.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "0.01",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045368516685",
+      "name": "#22401",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789658738765",
+          "sku": "ADK-TSHT-0003-22",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789658771533",
+          "sku": "ADK-JACT-0001-22",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789658804301",
+          "sku": "ADK-TSHT-0002-22",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789658837069",
+          "sku": "ADK-TRSR-0001-22",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "48.3",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.3",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789658869837",
+          "sku": "ADK-JACT-0001-16",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789658902605",
+          "sku": "ADK-TSHT-0002-16",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789658935373",
+          "sku": "ADK-PINF-0002-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "59.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.85",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789658968141",
+          "sku": "ADK-TRSR-0002-16",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789659000909",
+          "sku": "ADK-TSHT-0003-16",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789659033677",
+          "sku": "ADK-JACT-0001-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789659066445",
+          "sku": "ADK-TRSR-0002-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789659099213",
+          "sku": "ADK-TRSR-0001-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "48.3",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.3",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789659131981",
+          "sku": "ADK-TSHT-0002-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789659164749",
+          "sku": "ADK-TSHT-0003-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789659197517",
+          "sku": "ADK-TRSR-0002-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789659230285",
+          "sku": "ADK-JACT-0001-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789659263053",
+          "sku": "ADK-TSHT-0002-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789659295821",
+          "sku": "ADK-TRSR-0001-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "48.3",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.3",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789659328589",
+          "sku": "BAG-RUSB-0001-001",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "0.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "0.01",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045371433037",
+      "name": "#22402",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789666209869",
+          "sku": "ADK-TSHT-0003-16",
+          "quantity": 2,
+          "currentQuantity": 0,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789666242637",
+          "sku": "ADK-TRSR-0002-12",
+          "quantity": 2,
+          "currentQuantity": 0,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789666275405",
+          "sku": "ADK-TSHT-0003-22",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789666308173",
+          "sku": "ADK-TRSR-0002-28",
+          "quantity": 1,
+          "currentQuantity": 0,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789666340941",
+          "sku": "BAG-RUSB-0001-001",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "0.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "0.01",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14850565668941",
+          "sku": "ADK-TSHT-0003-18",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14850565701709",
+          "sku": "ADK-TRSR-0002-14",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14850565734477",
+          "sku": "ADK-TRSR-0002-22",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045373726797",
+      "name": "#22403",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789671157837",
+          "sku": "ADK-TSHT-0001-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.85",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789671190605",
+          "sku": "ADK-TSHT-0001-20",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.85",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789671223373",
+          "sku": "ADK-JACT-0001-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789671256141",
+          "sku": "ADK-JACT-0001-20",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045374677069",
+      "name": "#22404",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789673254989",
+          "sku": "IAT-TSHT-0003-S",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.2",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789673287757",
+          "sku": "IAT-SKRT-0001-S",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "52.5",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789673320525",
+          "sku": "IAT-BLSE-0001-S",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "37.8",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.8",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045375889485",
+      "name": "#22405",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "Credit/Debit Cards"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789676793933",
+          "sku": "ADK-TRSR-0002-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789676826701",
+          "sku": "ADK-TRSR-0002-8",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789676859469",
+          "sku": "ADK-TSHT-0003-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789676892237",
+          "sku": "ADK-TSHT-0003-8",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045380968525",
+      "name": "#22406",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789690949709",
+          "sku": "ADK-TRSR-0002-10",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "9.46",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.04",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789690982477",
+          "sku": "ADK-DRES-0001-6",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "49.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "4.93",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.12",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789691015245",
+          "sku": "ADK-PINF-0001-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "59.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [
+            {
+              "allocatedAmountSet": {
+                "shopMoney": {
+                  "amount": "5.98",
+                  "currencyCode": "AED"
+                }
+              },
+              "discountApplication": {
+                "index": 0
+              }
+            }
+          ],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.57",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045383688269",
+      "name": "#22407",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789697011789",
+          "sku": "IAT-JACT-0001-S",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045385752653",
+      "name": "#22408",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "cash"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789701402701",
+          "sku": "ADK-TSHT-0001-24",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701435469",
+          "sku": "ADK-TRSR-0001-24",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "48.3",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.6",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701468237",
+          "sku": "ADK-TSHT-0001-8",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.85",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701501005",
+          "sku": "ADK-JACT-0001-14",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701533773",
+          "sku": "ADK-TSHT-0001-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.85",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701566541",
+          "sku": "ADK-TSHT-0001-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.85",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701599309",
+          "sku": "ADK-TSHT-0002-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701632077",
+          "sku": "ADK-TSHT-0002-8",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701664845",
+          "sku": "ADK-TSHT-0003-8",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701697613",
+          "sku": "ADK-TSHT-0003-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701730381",
+          "sku": "ADK-TSHT-0003-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701763149",
+          "sku": "ADK-PINF-0001-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "59.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.85",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701795917",
+          "sku": "ADK-PINF-0002-24",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "59.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.85",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701828685",
+          "sku": "ADK-PINF-0001-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "59.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.85",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701861453",
+          "sku": "ADK-TSHT-0002-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "42.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701894221",
+          "sku": "ADK-JACT-0001-12",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701926989",
+          "sku": "ADK-JACT-0001-10",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789701959757",
+          "sku": "BAG-RUSB-0001-001",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "0.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "0.02",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045394239565",
+      "name": "#22409",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789722603597",
+          "sku": "IAT-DCOT-0005-L",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "63.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789722636365",
+          "sku": "IAT-JACT-0001-XL",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045394501709",
+      "name": "#22410",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789723127885",
+          "sku": "IAT-TSHT-0003-S",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.2",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789723160653",
+          "sku": "IAT-JACT-0001-M",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789723193421",
+          "sku": "IAT-SKRT-0001-XS",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "52.5",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045409247309",
+      "name": "#22411",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789755928653",
+          "sku": "ADK-TRSR-0002-8",
+          "quantity": 3,
+          "currentQuantity": 0,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "6.75",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789755961421",
+          "sku": "ADK-TSHT-0003-6",
+          "quantity": 3,
+          "currentQuantity": 3,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "5.1",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14813046472781",
+          "sku": "ADK-TRSR-0002-6",
+          "quantity": 3,
+          "currentQuantity": 3,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "6.75",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045410525261",
+      "name": "#22412",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789758386253",
+          "sku": "IAT-JACT-0001-XS",
+          "quantity": 4,
+          "currentQuantity": 4,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "13.6",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789758419021",
+          "sku": "IAT-TRSR-0013-M",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "61.95",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "5.9",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789758451789",
+          "sku": "IAT-TRSR-0013-S",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "61.95",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "5.9",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789758484557",
+          "sku": "IAT-TSHT-0003-XS",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789758517325",
+          "sku": "IAT-TSHT-0003-XXS",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789758550093",
+          "sku": "IAT-BLSE-0001-XS",
+          "quantity": 6,
+          "currentQuantity": 6,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "37.8",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "10.8",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789758582861",
+          "sku": "IAT-SKRT-0001-XS",
+          "quantity": 6,
+          "currentQuantity": 6,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "52.5",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "15.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045415374925",
+      "name": "#22413",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789768609869",
+          "sku": "ADK-TRSR-0002-20",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "47.25",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.25",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789768642637",
+          "sku": "ADK-JACT-0001-20",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "84.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "4.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789768675405",
+          "sku": "ADK-TSHT-0001-18",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.85",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789768708173",
+          "sku": "ADK-TSHT-0003-18",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "35.7",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "1.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045435985997",
+      "name": "#22414",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789814550605",
+          "sku": "IAT-TSHT-0003-7XL",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789814583373",
+          "sku": "IAT-TRSR-0013-9XL",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "61.95",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "5.9",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789814616141",
+          "sku": "IAT-JACT-0001-7XL",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "6.8",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789814648909",
+          "sku": "IAT-DCOT-0002-7XL",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "63.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789814681677",
+          "sku": "IAT-DCOT-0003-7XL",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "63.0",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.0",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789814714445",
+          "sku": "IAT-TRSR-0015-8XL",
+          "quantity": 4,
+          "currentQuantity": 4,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "91.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "17.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789814747213",
+          "sku": "IAT-TSHT-0024-7XL",
+          "quantity": 4,
+          "currentQuantity": 4,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "7.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045458825293",
+      "name": "#22415",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789868978253",
+          "sku": "IAT-JACT-0001-XXS",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789869011021",
+          "sku": "IAT-JACT-0001-XS",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789869043789",
+          "sku": "IAT-TSHT-0003-XS",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789869076557",
+          "sku": "IAT-SKRT-0001-XS",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "52.5",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045462102093",
+      "name": "#22416",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "0.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789876056141",
+          "sku": "IAT-JACT-0001-XL",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "71.4",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789876088909",
+          "sku": "IAT-TRSR-0013-XL",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "61.95",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "5.9",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789876121677",
+          "sku": "IAT-TSHT-0003-L",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "25.2",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.4",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789876154445",
+          "sku": "IAT-TSHT-0024-L",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "38.85",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "3.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "gid://shopify/LineItem/14789876187213",
+          "sku": "IAT-TRSR-0015-XL",
+          "quantity": 2,
+          "currentQuantity": 2,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "91.35",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "8.7",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gid://shopify/Order/6045486678093",
+      "name": "#22417",
+      "taxesIncluded": true,
+      "currentShippingPriceSet": {
+        "shopMoney": {
+          "amount": "22.0",
+          "currencyCode": "AED"
+        }
+      },
+      "paymentGatewayNames": [
+        "CCAvenue UAE"
+      ],
+      "lineItems": [
+        {
+          "id": "gid://shopify/LineItem/14789935267917",
+          "sku": "IAT-SKRT-0001-M",
+          "quantity": 1,
+          "currentQuantity": 1,
+          "originalUnitPriceSet": {
+            "shopMoney": {
+              "amount": "52.5",
+              "currencyCode": "AED"
+            }
+          },
+          "discountAllocations": [],
+          "taxLines": [
+            {
+              "title": "VAT",
+              "rate": 0.05,
+              "priceSet": {
+                "shopMoney": {
+                  "amount": "2.5",
+                  "currencyCode": "AED"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
