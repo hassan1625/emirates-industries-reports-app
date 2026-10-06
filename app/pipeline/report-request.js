@@ -94,3 +94,16 @@ export function parseReportRequest(reportKey, input = {}, { allowedOptions = {},
 
   return Object.keys(errors).length ? { ok: false, errors } : { ok: true, value };
 }
+
+// Human-readable filter choices for the "Request" sheet and the job record:
+// [{ key, label, values: [display text] }] for every filter that has chosen
+// values. `options` is the same { [filterKey]: [{ value, label }] } the screen
+// uses; a value without a known label is shown as it is.
+export function describeFilters(reportKey, filters = {}, options = {}) {
+  return getReportFilters(reportKey)
+    .filter((filter) => filters[filter.key]?.length)
+    .map((filter) => {
+      const labelOf = new Map((options[filter.key] ?? []).map((o) => [o.value, o.label]));
+      return { key: filter.key, label: filter.label, values: filters[filter.key].map((value) => labelOf.get(value) ?? value) };
+    });
+}

@@ -5,12 +5,23 @@
 import { useState } from "react";
 import { useFetcher, useLoaderData, useSearchParams } from "react-router";
 import { authenticate } from "../shopify.server";
-import { buildOrdersBulkQuery, buildOrdersSearchQuery } from "../pipeline/orders-bulk-query";
+import { buildOrdersBulkQuery, buildOrdersSearchQuery, buildOrdersUpdatedSinceQuery } from "../pipeline/orders-bulk-query";
+import { buildAgreementsQuery } from "../pipeline/ledger-queries";
+import { downloadBulkFile, groupAgreementOrders, groupOrders, readJsonl } from "../pipeline/bulk-file";
+import { latestProductsFile, prototypeFilePath, prototypeReportPath } from "../pipeline/storage";
+import { buildLedgerRows, indexAgreements, ledgerColumns, summarizeRows } from "../pipeline/ledger-rows";
+import { fetchStaffByOrder } from "../pipeline/staff";
+import { loadProductIndex } from "../pipeline/join";
+import { loadMappings } from "../pipeline/location-mapping";
+import { endOfDayUtc, startOfDayUtc } from "../pipeline/dates";
+import { parseLocalDateTime, writeReportXlsx } from "../pipeline/report-xlsx";
+import { formatStoreDate } from "../pipeline/report-rows";
+import { STORE_TIME_ZONE } from "../config/store";
 import { startBulkOperation } from "../pipeline/bulk";
 import db from "../db.server";
 import { startReportJob } from "../pipeline/start-job";
 import { handleBulkOperationsFinish } from "../pipeline/bulk-finish";
-import { advanceJob } from "../pipeline/job-chain";
+import { advanceAndGenerate } from "../pipeline/job-runner";
 import { ensureDefaultMappings } from "../pipeline/location-mapping";
 import { previewJob } from "../pipeline/report-preview";
 import { getReportFields } from "../config";
@@ -155,6 +166,14 @@ const KINDS = {
     }
   }
 }`,
+  },
+  ledgerOrders: {
+    label: "LEDGER PROTOTYPE 1/2: orders changed since the From date (same data as Orders + line items)",
+    build: (range) => buildOrdersUpdatedSinceQuery({ start: range.start }),
+  },
+  ledgerAgreements: {
+    label: "LEDGER PROTOTYPE 2/2: dated sales events (orders, returns, exchanges) since the From date",
+    build: (range) => buildAgreementsQuery({ start: range.start }),
   },
   paymentCheck: {
     label: "PAYMENT CHECK: net payment vs current total per order (refund discrepancies)",
@@ -484,7 +503,26 @@ function summarizePaymentCheck(lines) {
   return s;
 }
 
+// Counts the dated events: agreements by kind, sales by action and line type.
+function summarizeAgreements(lines) {
+  const s = { lines: lines.length, orders: 0, agreementTypes: {}, agreementReasons: {}, salesByActionAndLine: {}, ordersWithMoreThanOneAgreement: 0, firstLineKeys: lines.length ? Object.keys(lines[0]) : [] };
+  const agreementsPerOrder = new Map();
+  for (const line of lines) {
+    if (line.happenedAt) {
+      bump(s.agreementTypes, line.__typename ?? "?");
+      bump(s.agreementReasons, line.reason ?? "null");
+      agreementsPerOrder.set(line.__parentId, (agreementsPerOrder.get(line.__parentId) ?? 0) + 1);
+    } else if (line.actionType) {
+      bump(s.salesByActionAndLine, `${line.actionType} / ${line.lineType}`);
+    } else if (line.id?.includes("/Order/")) s.orders += 1;
+  }
+  for (const count of agreementsPerOrder.values()) if (count > 1) s.ordersWithMoreThanOneAgreement += 1;
+  return s;
+}
+
 const SUMMARIZERS = {
+  ledgerOrders: (lines) => ({ note: "Same shape as the orders export. Use Save file, then I read it from disk.", lines: lines.length }),
+  ledgerAgreements: summarizeAgreements,
   paymentCheck: summarizePaymentCheck,
   orders: summarizeOrders,
   returnsRefunds: summarizeReturnsRefunds,
@@ -740,12 +778,144 @@ export const action = async ({ request }) => {
         db,
         onFinished: (finished) => {
           if (finished.operation.status === "RUNNING" || finished.operation.status === "CREATED") return;
-          advanceJob({ db, admin, result: finished }).then((o) => console.log(`Job ${job.id}: ${o.action}`)).catch((e) => console.error(e));
+          advanceAndGenerate({ db, admin, result: finished }).then((o) => console.log(`Job ${job.id}: ${o.action}`)).catch((e) => console.error(e));
         },
       });
       return { simulated: { operationStatus: result.operation?.status ?? null, note: result.operation && ["RUNNING", "CREATED"].includes(result.operation.status) ? "Still running at Shopify; try again shortly." : "Chain started in the background; refresh the job list." }, error: null };
     } catch (error) {
       return { simulated: null, error: error.message };
+    }
+  }
+
+  // Saves the current finished export to disk (storage/prototype/<kind>.jsonl) so
+  // it can be examined offline. Prototype tooling only.
+  if (form.get("intent") === "saveFile") {
+    try {
+      const response = await admin.graphql(CURRENT_OPERATION_QUERY);
+      const { data } = await response.json();
+      const operation = data.currentBulkOperation;
+      if (!operation || operation.status !== "COMPLETED") return { error: `The latest export is ${operation?.status ?? "missing"}, not COMPLETED.` };
+      const path = prototypeFilePath(String(form.get("kind")));
+      const { bytes, empty } = await downloadBulkFile(operation.url, path);
+      return { saved: { kind: form.get("kind"), path, bytes, empty, operation: operation.id, objectCount: operation.objectCount }, error: null };
+    } catch (error) {
+      return { saved: null, error: error.message };
+    }
+  }
+
+  // Builds the SAMPLE ledger report (storage/prototype/sample-general-sales.xlsx)
+  // from the two saved ledger exports, for the From..To store days. Prototype only.
+  if (form.get("intent") === "ledgerSample") {
+    try {
+      const from = String(form.get("start"));
+      const to = String(form.get("end"));
+      const productsFile = latestProductsFile();
+      if (!productsFile) return { error: "No products file found in storage/jobs (run a pipeline job once)." };
+      const productIndex = await loadProductIndex(productsFile);
+      const mappings = await loadMappings(db, session.shop);
+      const staffByOrder = await fetchStaffByOrder(admin, from, to);
+      const agreementsByOrder = await indexAgreements(groupAgreementOrders(readJsonl(prototypeFilePath("ledgerAgreements"))));
+      const columns = ledgerColumns();
+      const rows = await buildLedgerRows(groupOrders(readJsonl(prototypeFilePath("ledgerOrders"))), agreementsByOrder, {
+        columns,
+        productIndex,
+        mappings,
+        staffByOrder,
+        startMs: startOfDayUtc(from, STORE_TIME_ZONE).getTime(),
+        endMs: endOfDayUtc(to, STORE_TIME_ZONE).getTime() + 999,
+      });
+      const filePath = prototypeReportPath("sample-general-sales");
+      const written = await writeReportXlsx({
+        filePath,
+        sheetName: "General Sales Report",
+        columns,
+        rows: rows.map((row) => row.values),
+        request: {
+          reportLabel: "General Sales Report (SAMPLE)",
+          generatedAt: parseLocalDateTime(formatStoreDate(new Date())),
+          range: { from, to, timeZone: STORE_TIME_ZONE },
+          filters: [],
+          notes: [
+            "Rows are dated on the day the event happened: returns and exchanges count on the day they were processed, not on the original order date.",
+            "Order Type: Order = items sold (including exchange replacements) and shipping; Reversal = items returned, with negative quantity and amounts.",
+            "Return Reason appears on Reversal rows only. Shipping rows have Is Shipping Charges = Yes.",
+            "Exchange adjustment rows are credit Shopify keeps when a returned item was worth more than its replacement.",
+          ],
+        },
+      });
+      return { ledgerSample: { path: filePath, ...written, staffOrders: staffByOrder.size, rowsWithStaff: rows.filter((row) => row.values.posStaff).length, totals: summarizeRows(rows) }, error: null };
+    } catch (error) {
+      return { ledgerSample: null, error: error.stack ?? error.message };
+    }
+  }
+
+  // Tries the ShopifyQL API with the client's staff query, for one day.
+  if (form.get("intent") === "shopifyqlStaff") {
+    try {
+      const day = String(form.get("start"));
+      const query = `FROM sales SHOW orders, total_sales WHERE sales_channel = 'Point of Sale' AND staff_member_name IS NOT NULL GROUP BY staff_member_name SINCE ${day} UNTIL ${day} ORDER BY total_sales DESC LIMIT 20`;
+      const response = await admin.graphql(`#graphql
+        query staffTest($q: String!) { shopifyqlQuery(query: $q) { tableData { columns { name dataType displayName } rows } parseErrors } }`, { variables: { q: query } });
+      const body = await response.json();
+      return { shopifyql: { query, errors: body.errors ?? null, parseErrors: body.data?.shopifyqlQuery?.parseErrors ?? null, columns: body.data?.shopifyqlQuery?.tableData?.columns?.map((c) => c.name) ?? null, rowCount: body.data?.shopifyqlQuery?.tableData?.rows?.length ?? null, sampleRows: (body.data?.shopifyqlQuery?.tableData?.rows ?? []).slice(0, 5) }, error: null };
+    } catch (error) {
+      return { shopifyql: null, error: error.message };
+    }
+  }
+
+  // Can ShopifyQL give the staff member per order, for a busy day, within its
+  // paging and budget limits? Pages through the whole day and reports what it saw.
+  if (form.get("intent") === "shopifyqlStaffPerOrder") {
+    try {
+      const day = String(form.get("start"));
+      const PAGE = 1000;
+      const started = Date.now();
+      const rows = [];
+      const costs = [];
+      let pages = 0;
+      let lastError = null;
+      for (let offset = 0; pages < 40; offset += PAGE) {
+        const query = `FROM sales SHOW orders GROUP BY order_name, staff_member_name, order_or_sales_reversal WHERE sales_channel = 'Point of Sale' AND staff_member_name IS NOT NULL SINCE ${day} UNTIL ${day} ORDER BY order_name, staff_member_name LIMIT ${PAGE} OFFSET ${offset}`;
+        const response = await admin.graphql(`#graphql
+          query staffPage($q: String!) { shopifyqlQuery(query: $q) { tableData { columns { name } rows } parseErrors } }`, { variables: { q: query } });
+        const body = await response.json();
+        pages += 1;
+        if (body.extensions?.shopifyqlCost) costs.push(body.extensions.shopifyqlCost);
+        if (body.errors?.length || body.data?.shopifyqlQuery?.parseErrors?.length) {
+          lastError = { errors: body.errors ?? null, parseErrors: body.data?.shopifyqlQuery?.parseErrors ?? null };
+          break;
+        }
+        const page = body.data.shopifyqlQuery.tableData.rows;
+        rows.push(...page);
+        if (page.length < PAGE) break;
+      }
+      const staffByOrder = new Map();
+      for (const row of rows) {
+        const key = row.order_name;
+        if (!staffByOrder.has(key)) staffByOrder.set(key, new Set());
+        staffByOrder.get(key).add(row.staff_member_name);
+      }
+      const byType = {};
+      for (const row of rows) bump(byType, row.order_or_sales_reversal ?? "null");
+      return {
+        staffPerOrder: {
+          day,
+          pages,
+          totalRows: rows.length,
+          distinctOrders: staffByOrder.size,
+          ordersWithSeveralStaff: [...staffByOrder.values()].filter((set) => set.size > 1).length,
+          rowsByOrderOrReversal: byType,
+          distinctStaff: new Set(rows.map((r) => r.staff_member_name)).size,
+          seconds: (Date.now() - started) / 1000,
+          lastCost: costs.at(-1) ?? null,
+          firstCost: costs[0] ?? null,
+          stoppedWithError: lastError,
+          sample: rows.slice(0, 4),
+        },
+        error: null,
+      };
+    } catch (error) {
+      return { staffPerOrder: null, error: error.message };
     }
   }
 
@@ -881,11 +1051,27 @@ export default function DebugBulk() {
           <button type="submit" name="intent" value="seedMappings" disabled={busy}>
             Seed location mappings
           </button>{" "}
+          <button type="submit" name="intent" value="saveFile" disabled={busy}>
+            Save latest export to disk (as selected type)
+          </button>{" "}
+          <button type="submit" name="intent" value="ledgerSample" disabled={busy}>
+            Build SAMPLE ledger report (From..To)
+          </button>{" "}
+          <button type="submit" name="intent" value="shopifyqlStaff" disabled={busy}>
+            Test ShopifyQL staff query (From date)
+          </button>{" "}
+          <button type="submit" name="intent" value="shopifyqlStaffPerOrder" disabled={busy}>
+            Test staff PER ORDER for the From day
+          </button>{" "}
           <input type="text" name="orderName" placeholder="#23416" style={{ width: 90 }} />{" "}
           <button type="submit" name="intent" value="inspectOrder" disabled={busy}>
             Inspect order refunds
           </button>
         </fetcher.Form>
+        {result?.saved && <pre>{JSON.stringify(result.saved, null, 2)}</pre>}
+        {result?.ledgerSample && <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(result.ledgerSample, null, 2)}</pre>}
+        {result?.staffPerOrder && <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(result.staffPerOrder, null, 2)}</pre>}
+        {result?.shopifyql && <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(result.shopifyql, null, 2)}</pre>}
         {result?.inspected && <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(result.inspected, null, 2)}</pre>}
         {result?.error && <pre style={{ color: "crimson", whiteSpace: "pre-wrap" }}>{result.error}</pre>}
         {result?.checks && <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(result.checks, null, 2)}</pre>}
@@ -921,8 +1107,8 @@ export default function DebugBulk() {
 
       <s-section heading="Report preview (testing only: totals and sample rows for a finished job)">
         <fetcher.Form method="post">
-          <select name="previewJobId" defaultValue={jobs.find((j) => j.stage === "DATA_READY")?.id}>
-            {jobs.filter((j) => j.stage === "DATA_READY").map((j) => (
+          <select name="previewJobId" defaultValue={jobs.find((j) => ["DATA_READY", "READY"].includes(j.stage))?.id}>
+            {jobs.filter((j) => ["DATA_READY", "READY"].includes(j.stage)).map((j) => (
               <option key={j.id} value={j.id}>
                 {j.id} ({new Date(j.updatedAt).toLocaleString()})
               </option>
@@ -931,7 +1117,7 @@ export default function DebugBulk() {
           <label>
             sample rows <input type="number" name="sampleSize" defaultValue={50} min={0} max={500} style={{ width: 70 }} />
           </label>{" "}
-          <button type="submit" name="intent" value="preview" disabled={busy || !jobs.some((j) => j.stage === "DATA_READY")}>
+          <button type="submit" name="intent" value="preview" disabled={busy || !jobs.some((j) => ["DATA_READY", "READY"].includes(j.stage))}>
             Preview report
           </button>
           {busy && " working..."}

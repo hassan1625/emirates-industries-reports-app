@@ -34,9 +34,19 @@ const MONEY = "shopMoney { amount currencyCode }";
 // `orders(query:)` body. Kept as a function so the date filter is injected
 // safely and the same text can be validated against Shopify's schema.
 export function buildOrdersBulkQuery({ start, end }) {
-  const filter = buildOrdersSearchQuery({ start, end });
+  return ordersQueryText(buildOrdersSearchQuery({ start, end }), "CREATED_AT");
+}
+
+// The same data for every order that CHANGED since `start` (created, edited,
+// refunded, returned, exchanged), whatever its creation date. This is the order
+// set a dated-events report needs: a return today belongs to an older order.
+export function buildOrdersUpdatedSinceQuery({ start }) {
+  return ordersQueryText(`updated_at:>=${toIso(start, "start")}`, "UPDATED_AT");
+}
+
+function ordersQueryText(filter, sortKey) {
   return `{
-  orders(query: ${JSON.stringify(filter)}, sortKey: CREATED_AT) {
+  orders(query: ${JSON.stringify(filter)}, sortKey: ${sortKey}) {
     edges {
       node {
         id

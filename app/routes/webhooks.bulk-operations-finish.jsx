@@ -1,7 +1,7 @@
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { handleBulkOperationsFinish } from "../pipeline/bulk-finish";
-import { advanceJob } from "../pipeline/job-chain";
+import { advanceAndGenerate } from "../pipeline/job-runner";
 
 export const action = async ({ request }) => {
   // Verifies the HMAC; throws 401 for a bad signature.
@@ -18,7 +18,7 @@ export const action = async ({ request }) => {
   // a long-lived Node process). If it dies mid-way the job keeps its last
   // stage and the Step 16 poller recovers it.
   const onFinished = (result) => {
-    advanceJob({ db, admin, result })
+    advanceAndGenerate({ db, admin, result })
       .then((outcome) => console.log(`Job ${result.job.id} (${result.which} export): ${outcome.action}`))
       .catch((error) => console.error(`Job ${result.job.id} chain failed:`, error));
   };

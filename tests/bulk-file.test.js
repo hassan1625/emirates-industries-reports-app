@@ -155,3 +155,29 @@ describe("files", () => {
     assert.equal(stats.lineItems, 50000);
   });
 });
+
+import { groupAgreementOrders } from "../app/pipeline/bulk-file.js";
+
+test("groupAgreementOrders attaches dated agreements and their sales to each order", async () => {
+  const lines = [
+    { id: "gid://shopify/Order/1", name: "#1", createdAt: "2026-09-01T10:00:00Z" },
+    { __typename: "OrderAgreement", id: "gid://shopify/SalesAgreement/10", happenedAt: "2026-09-01T10:00:00Z", reason: "PURCHASE", __parentId: "gid://shopify/Order/1" },
+    { __typename: "ProductSale", id: "gid://shopify/ProductSale/100", actionType: "ORDER", lineType: "PRODUCT", quantity: 1, lineItem: { id: "L1" }, __parentId: "gid://shopify/SalesAgreement/10" },
+    { __typename: "ShippingLineSale", id: "gid://shopify/ShippingLineSale/101", actionType: "ORDER", lineType: "SHIPPING", quantity: null, __parentId: "gid://shopify/SalesAgreement/10" },
+    { __typename: "ReturnAgreement", id: "gid://shopify/SalesAgreement/11", happenedAt: "2026-09-03T09:00:00Z", reason: "RETURN", __parentId: "gid://shopify/Order/1" },
+    { __typename: "ProductSale", id: "gid://shopify/ProductSale/102", actionType: "RETURN", lineType: "PRODUCT", quantity: -1, lineItem: { id: "L1" }, __parentId: "gid://shopify/SalesAgreement/11" },
+    { id: "gid://shopify/Order/2", name: "#2", createdAt: "2026-09-02T10:00:00Z" },
+  ];
+  const out = [];
+  for await (const order of groupAgreementOrders(lines)) out.push(order);
+  assert.equal(out.length, 2);
+  assert.deepEqual(out[0].agreements.map((a) => a.happenedAt), ["2026-09-01T10:00:00Z", "2026-09-03T09:00:00Z"]);
+  assert.deepEqual(out[0].agreements[0].sales.map((s) => s.lineType), ["PRODUCT", "SHIPPING"]);
+  assert.equal(out[0].agreements[1].sales[0].quantity, -1);
+  assert.deepEqual(out[1].agreements, []);
+});
+
+test("groupAgreementOrders throws on a line it cannot place instead of dropping data", async () => {
+  const bad = [{ id: "gid://shopify/Order/1" }, { id: "x", mystery: true, __parentId: "gid://shopify/Order/1" }];
+  await assert.rejects(async () => { for await (const order of groupAgreementOrders(bad)) void order; }, /Unexpected agreement child/);
+});

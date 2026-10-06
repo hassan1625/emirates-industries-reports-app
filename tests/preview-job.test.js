@@ -99,14 +99,16 @@ describe("stage info", () => {
   });
 
   test("progress rises through the pipeline", () => {
-    const order = [STAGES.PENDING, STAGES.ORDERS_RUNNING, STAGES.ORDERS_DOWNLOADING, STAGES.ORDERS_READY, STAGES.PRODUCTS_RUNNING, STAGES.PRODUCTS_DOWNLOADING, STAGES.DATA_READY];
+    const order = [STAGES.PENDING, STAGES.ORDERS_RUNNING, STAGES.ORDERS_DOWNLOADING, STAGES.ORDERS_READY, STAGES.PRODUCTS_RUNNING, STAGES.PRODUCTS_DOWNLOADING, STAGES.DATA_READY, STAGES.GENERATING, STAGES.READY];
     const values = order.map((s) => STAGE_INFO[s].progress);
     assert.deepEqual(values, [...values].sort((a, b) => a - b));
   });
 
-  test("only DATA_READY and FAILED are terminal; unknown stages stop polling", () => {
-    assert.equal(isTerminalStage(STAGES.DATA_READY), true);
+  test("only READY and FAILED are terminal; building the file is not; unknown stages stop polling", () => {
+    assert.equal(isTerminalStage(STAGES.READY), true);
     assert.equal(isTerminalStage(STAGES.FAILED), true);
+    assert.equal(isTerminalStage(STAGES.DATA_READY), false);
+    assert.equal(isTerminalStage(STAGES.GENERATING), false);
     assert.equal(isTerminalStage(STAGES.ORDERS_RUNNING), false);
     assert.equal(isTerminalStage("SOMETHING_ELSE"), true);
   });

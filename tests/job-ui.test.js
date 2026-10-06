@@ -31,7 +31,7 @@ test("a running job shows a spinner, its label and the keep-waiting hint", () =>
 });
 
 test("every non-final stage shows a spinner and its own label", () => {
-  for (const stage of [STAGES.PENDING, STAGES.ORDERS_RUNNING, STAGES.ORDERS_DOWNLOADING, STAGES.ORDERS_READY, STAGES.PRODUCTS_RUNNING, STAGES.PRODUCTS_DOWNLOADING]) {
+  for (const stage of [STAGES.PENDING, STAGES.ORDERS_RUNNING, STAGES.ORDERS_DOWNLOADING, STAGES.ORDERS_READY, STAGES.PRODUCTS_RUNNING, STAGES.PRODUCTS_DOWNLOADING, STAGES.DATA_READY, STAGES.GENERATING]) {
     const html = render(JobStatus, { status: status(stage) });
     assert.match(html, /<s-spinner/, stage);
     assert.ok(html.includes(STAGE_INFO[stage].label), stage);
@@ -39,8 +39,8 @@ test("every non-final stage shows a spinner and its own label", () => {
 });
 
 test("a finished job shows success, no spinner, and how long it took", () => {
-  const html = render(JobStatus, { status: status(STAGES.DATA_READY) });
-  assert.match(html, /<s-badge tone="success">Data ready<\/s-badge>/);
+  const html = render(JobStatus, { status: status(STAGES.READY) });
+  assert.match(html, /<s-badge tone="success">Report ready<\/s-badge>/);
   assert.doesNotMatch(html, /<s-spinner/);
   assert.match(html, /took 252s/); // 4 min 12 s between created and updated
   assert.doesNotMatch(html, /This page updates by itself/);

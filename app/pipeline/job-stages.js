@@ -7,7 +7,9 @@ export const STAGES = Object.freeze({
   ORDERS_READY: "ORDERS_READY", // orders file on disk, products export not started yet
   PRODUCTS_RUNNING: "PRODUCTS_RUNNING", // products/collections export running at Shopify
   PRODUCTS_DOWNLOADING: "PRODUCTS_DOWNLOADING",
-  DATA_READY: "DATA_READY", // both files on disk; ready to join (Milestone 3)
+  DATA_READY: "DATA_READY", // both files on disk; the report file is built next
+  GENERATING: "GENERATING", // the XLSX is being written
+  READY: "READY", // the report file exists and can be downloaded
   FAILED: "FAILED",
 });
 
@@ -30,7 +32,9 @@ export const STAGE_INFO = Object.freeze({
   [STAGES.ORDERS_READY]: { label: "Orders received", detail: "Asking Shopify for products and collections.", progress: 55, terminal: false },
   [STAGES.PRODUCTS_RUNNING]: { label: "Collecting products", detail: "Shopify is preparing products and collections.", progress: 75, terminal: false },
   [STAGES.PRODUCTS_DOWNLOADING]: { label: "Downloading products", detail: "Receiving products and collections.", progress: 90, terminal: false },
-  [STAGES.DATA_READY]: { label: "Data ready", detail: "All data has been received.", progress: 100, terminal: true },
+  [STAGES.DATA_READY]: { label: "Building the report", detail: "All data has been received; creating the Excel file.", progress: 92, terminal: false },
+  [STAGES.GENERATING]: { label: "Building the report", detail: "Creating the Excel file.", progress: 96, terminal: false },
+  [STAGES.READY]: { label: "Report ready", detail: "Your report file is ready.", progress: 100, terminal: true },
   [STAGES.FAILED]: { label: "Failed", detail: "The report could not be prepared.", progress: 0, terminal: true },
 });
 

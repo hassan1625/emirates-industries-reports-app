@@ -164,3 +164,23 @@ describe("field selection (Report 1)", () => {
     assert.deepEqual(getSelectableFields("stockByLocation"), []);
   });
 });
+
+import { describeFilters } from "../app/pipeline/report-request.js";
+
+describe("describeFilters", () => {
+  const options = { salesChannel: [{ value: "pos", label: "Point of Sale" }], posLocation: [{ value: "L1", label: "Al Ain" }] };
+
+  test("turns chosen values into readable names, with the config's labels", () => {
+    assert.deepEqual(describeFilters(REPORT, { salesChannel: ["pos"], posLocation: ["L1"] }, options), [
+      { key: "salesChannel", label: "Sales Channel", values: ["Point of Sale"] },
+      { key: "posLocation", label: "POS Location", values: ["Al Ain"] },
+    ]);
+  });
+  test("a value without a known label is shown as it is", () => {
+    assert.deepEqual(describeFilters(REPORT, { salesChannel: ["web"] }, options)[0].values, ["web"]);
+  });
+  test("filters with nothing chosen are left out", () => {
+    assert.deepEqual(describeFilters(REPORT, { salesChannel: [], posLocation: ["L1"] }, options).map((f) => f.key), ["posLocation"]);
+    assert.deepEqual(describeFilters(REPORT, {}, options), []);
+  });
+});

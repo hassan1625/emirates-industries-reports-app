@@ -227,7 +227,7 @@ describe("other cases", () => {
   });
 
   test("finished jobs are never looked at", async () => {
-    const db = fakeDb([job({ stage: STAGES.DATA_READY }), job({ id: "job2", stage: STAGES.FAILED })]);
+    const db = fakeDb([job({ stage: STAGES.READY }), job({ id: "job2", stage: STAGES.FAILED })]);
     assert.deepEqual(await harness(db).run(), []);
   });
 
@@ -290,5 +290,70 @@ describe("recovery drives the real chain", () => {
     assert.equal(db.jobs.get("job1").stage, STAGES.PRODUCTS_RUNNING);
     assert.equal(db.jobs.get("job1").ordersFile, "/data/job1/orders.jsonl");
     assert.equal(calls.download.length, 1);
+  });
+});
+
+describe("building the report file (Step 27)", () => {
+  const dataJob = (overrides) => job({ stage: STAGES.DATA_READY, reportType: "generalSales", updatedAt: minutesAgo(5), ...overrides });
+  const run = async (db, generate) => {
+    const calls = [];
+    const outcomes = await recoverStuckJobs({
+      db,
+      now: NOW,
+      getAdmin: async () => ({}),
+      deps: { generateReport: async (args) => { calls.push(args.jobId); return generate ? generate(args) : { action: "ready" }; } },
+    });
+    return { outcomes, calls };
+  };
+
+  test("a job whose data is in but whose file was never started is built", async () => {
+    const db = fakeDb([dataJob()]);
+    const { outcomes, calls } = await run(db);
+    assert.deepEqual(calls, ["job1"]);
+    assert.equal(outcomes[0].action, "generated:ready");
+  });
+
+  test("a job that only just reached DATA_READY is left to the normal path", async () => {
+    const db = fakeDb([dataJob({ updatedAt: minutesAgo(0.2) })]);
+    const { outcomes, calls } = await run(db);
+    assert.equal(outcomes[0].action, "waiting");
+    assert.deepEqual(calls, []);
+  });
+
+  test("a file being written is left alone, until it has been stuck for 20 minutes", async () => {
+    const fresh = fakeDb([dataJob({ stage: STAGES.GENERATING, updatedAt: minutesAgo(5) })]);
+    assert.equal((await run(fresh)).outcomes[0].action, "waiting");
+
+    const stuck = fakeDb([dataJob({ stage: STAGES.GENERATING, updatedAt: minutesAgo(30) })]);
+    const { outcomes, calls } = await run(stuck);
+    assert.equal(outcomes[0].action, "generated:ready");
+    assert.deepEqual(calls, ["job1"]);
+    assert.equal(stuck.jobs.get("job1").stage, STAGES.DATA_READY); // put back so the claim can win again
+  });
+
+  test("a build that fails again is reported, not retried in a loop within one pass", async () => {
+    const db = fakeDb([dataJob()]);
+    const { outcomes, calls } = await run(db, async () => ({ action: "failed" }));
+    assert.equal(outcomes[0].action, "generated:failed");
+    assert.equal(calls.length, 1);
+  });
+
+  test("jobs of kinds that have no file (debug jobs) are left alone", async () => {
+    const db = fakeDb([dataJob({ reportType: "debugPipeline" }), dataJob({ id: "job2", reportType: "debugPipeline", stage: STAGES.GENERATING, updatedAt: minutesAgo(60) })]);
+    const { outcomes, calls } = await run(db);
+    assert.deepEqual(outcomes.map((o) => o.action), ["waiting", "waiting"]);
+    assert.deepEqual(calls, []);
+  });
+
+  test("the default advance step now builds the file too (webhook and recovery do the same thing)", async () => {
+    const db = fakeDb([job()]);
+    let built = 0;
+    await recoverStuckJobs({
+      db,
+      now: NOW,
+      getAdmin: async () => ({}),
+      deps: { fetchBulkOperation: async () => operation(), advanceJob: async () => { built += 1; return { action: "ready" }; } },
+    });
+    assert.equal(built, 1);
   });
 });

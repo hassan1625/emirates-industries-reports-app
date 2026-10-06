@@ -6,7 +6,8 @@
 // never double-run a step that a webhook, or another pass, already took.
 import { DOWNLOADING_STAGE, RUNNING_STAGE, STAGES } from "./job-stages.js";
 import { fetchBulkOperation } from "./bulk-finish.js";
-import { advanceJob } from "./job-chain.js";
+import { advanceAndGenerate } from "./job-runner.js";
+import { GENERATED_REPORT_TYPES, generateReport } from "./report-generation.js";
 import { startProductsBulkOperation } from "./products-bulk-query.js";
 
 const MINUTE = 60 * 1000;
@@ -25,6 +26,10 @@ export const RECOVERY_CONFIG = Object.freeze({
   productsRetryUntilMs: 30 * MINUTE,
   // Created but its orders export never started.
   pendingStaleAfterMs: 10 * MINUTE,
+  // Data is in but the report file was not started (a crash between the two).
+  generateAfterMs: 1 * MINUTE,
+  // The file has been "being written" this long: assume the writer died.
+  generatingStaleAfterMs: 20 * MINUTE,
 });
 
 const UNFINISHED = [
@@ -34,6 +39,8 @@ const UNFINISHED = [
   STAGES.ORDERS_READY,
   STAGES.PRODUCTS_RUNNING,
   STAGES.PRODUCTS_DOWNLOADING,
+  STAGES.DATA_READY,
+  STAGES.GENERATING,
 ];
 
 const whichOf = (stage) => (stage.startsWith("ORDERS") ? "orders" : "products");
@@ -53,7 +60,8 @@ export async function recoverStuckJobs({ db, getAdmin, now = new Date(), config 
   const cfg = { ...RECOVERY_CONFIG, ...config };
   const startProducts = deps.startProducts ?? startProductsBulkOperation;
   const lookup = deps.fetchBulkOperation ?? fetchBulkOperation;
-  const advance = deps.advanceJob ?? advanceJob;
+  const advance = deps.advanceJob ?? advanceAndGenerate;
+  const generate = deps.generateReport ?? generateReport;
 
   const jobs = await db.reportJob.findMany({ where: { stage: { in: UNFINISHED } } });
   const outcomes = [];
@@ -67,6 +75,30 @@ export async function recoverStuckJobs({ db, getAdmin, now = new Date(), config 
     try {
       if (job.stage === STAGES.PENDING) {
         record(age >= cfg.pendingStaleAfterMs ? await fail(db, job, "Orders export was never started") : "waiting");
+        continue;
+      }
+
+      // Data is in; build the report file if nothing has (or the writer died).
+      if (job.stage === STAGES.DATA_READY || job.stage === STAGES.GENERATING) {
+        if (!GENERATED_REPORT_TYPES.includes(job.reportType)) {
+          record("waiting"); // a job kind with no file to build (e.g. debug jobs)
+          continue;
+        }
+        if (job.stage === STAGES.GENERATING) {
+          if (age < cfg.generatingStaleAfterMs) {
+            record("waiting");
+            continue;
+          }
+          if (!(await claim(db, job, { stage: STAGES.DATA_READY, error: null }))) {
+            record("skipped");
+            continue;
+          }
+        } else if (age < cfg.generateAfterMs) {
+          record("waiting");
+          continue;
+        }
+        const generated = await generate({ db, jobId: job.id });
+        record(`generated:${generated.action}`);
         continue;
       }
 

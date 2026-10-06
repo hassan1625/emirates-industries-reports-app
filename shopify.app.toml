@@ -7,7 +7,7 @@ name = "Emirates Custom Report App"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_orders,read_all_orders,read_products,read_locations,read_inventory,read_returns"
+scopes = "read_orders,read_all_orders,read_products,read_locations,read_inventory,read_returns,read_reports"
 
 [webhooks]
 api_version = "2026-10"

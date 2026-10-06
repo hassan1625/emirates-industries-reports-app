@@ -91,3 +91,24 @@ test("startOrdersBulkOperation surfaces Shopify userErrors", async () => {
 test("startOrdersBulkOperation surfaces top-level GraphQL errors", async () => {
   await assert.rejects(() => startOrdersBulkOperation(fakeAdmin({ errors: [{ message: "Access denied" }] }), range), /Access denied/);
 });
+
+import { buildOrdersUpdatedSinceQuery } from "../app/pipeline/orders-bulk-query.js";
+import { buildAgreementsQuery } from "../app/pipeline/ledger-queries.js";
+
+test("the updated-since orders query carries the same fields, filtered and sorted by update time", () => {
+  const updated = buildOrdersUpdatedSinceQuery({ start: "2026-09-01T00:00:00Z" });
+  assert.match(updated, /updated_at:>=2026-09-01T00:00:00Z/);
+  assert.match(updated, /sortKey: UPDATED_AT/);
+  assert.ok(!updated.includes("created_at"));
+  const created = buildOrdersBulkQuery(range);
+  // identical selection, only the filter and sort differ
+  assert.equal(updated.replace(/orders\(.*\) \{/, "orders(X) {"), created.replace(/orders\(.*\) \{/, "orders(X) {"));
+});
+
+test("the agreements query uses 3 connections and selects dated sales events", () => {
+  const query = buildAgreementsQuery({ start: "2026-09-01T00:00:00Z" });
+  assert.equal(query.match(/edges\s*\{/g).length, 3); // orders, agreements, sales
+  for (const field of ["happenedAt", "actionType", "lineType", "quantity", "totalAmount", "totalTaxAmount", "totalDiscountAmountBeforeTaxes", "lineItem { id }", "shippingLine { id }"]) assert.ok(query.includes(field), field);
+  assert.match(query, /updated_at:>=2026-09-01T00:00:00Z/);
+  assert.ok(!query.includes("staffMember") && !query.includes("user"));
+});

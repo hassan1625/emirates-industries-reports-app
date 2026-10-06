@@ -7,7 +7,7 @@ const seconds = (from, to) => Math.max(0, Math.round((to - from) / 1000));
 export function JobStatus({ status }) {
   const terminal = isTerminalStage(status.stage);
   const failed = status.stage === STAGES.FAILED;
-  const ready = status.stage === STAGES.DATA_READY;
+  const ready = status.stage === STAGES.READY;
   const elapsed = seconds(Date.parse(status.createdAt), terminal ? Date.parse(status.updatedAt) : Date.now());
   return (
     <s-section heading="Report status">

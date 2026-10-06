@@ -116,6 +116,23 @@ export function groupOrders(lines) {
   });
 }
 
+// Orders with their dated agreements, each with its sales (see ledger-queries.js).
+// Told apart by shape: an agreement has `happenedAt`, a sale has `actionType`.
+export function agreementChildKey(line) {
+  if (line.happenedAt) return "agreements";
+  if (line.actionType) return "sales";
+  if (Object.keys(line).length === 1 && line.__parentId) return null;
+  throw new Error(`Unexpected agreement child line: ${JSON.stringify(Object.keys(line))}`);
+}
+
+export function groupAgreementOrders(lines) {
+  return groupBulkLines(lines, {
+    childKey: agreementChildKey,
+    rootDefaults: { agreements: [] },
+    childDefaults: { agreements: { sales: [] } },
+  });
+}
+
 export function groupProducts(lines) {
   return groupBulkLines(lines, { childKey: productChildKey, rootDefaults: { collections: [], variants: [] } });
 }

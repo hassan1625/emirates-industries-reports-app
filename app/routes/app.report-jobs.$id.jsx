@@ -27,7 +27,7 @@ export const loader = async ({ request, params }) => {
     request: { reportKey: requested.reportKey, range: requested.localRange ?? null, filters: requested.filters ?? {}, fields: requested.fields ?? null },
   };
 
-  if (new URL(request.url).searchParams.get("preview") === "1" && job.stage === STAGES.DATA_READY && previewEnabled()) {
+  if (new URL(request.url).searchParams.get("preview") === "1" && job.stage === STAGES.READY && previewEnabled()) {
     try {
       const key = `${job.id}:${job.updatedAt.toISOString()}`;
       if (!previewCache.has(key)) {

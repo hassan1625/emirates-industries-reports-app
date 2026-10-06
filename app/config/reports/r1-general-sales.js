@@ -10,33 +10,36 @@ export const generalSalesReport = {
   route: "/app/report-general-sales",
   phase: 1,
 
+  // Optional `width` on a field is the XLSX column width in characters; fields
+  // without one get a width from their type.
+
   // All fields selected by default, individually toggleable, with Select All.
   fieldSelection: { selectAll: true, defaultSelected: "all" },
 
   fields: [
-    { key: "orderName", label: "Order Name", type: "string", source: { operation: "orders", path: "name" } },
+    { key: "orderName", label: "Order Name", type: "string", width: 12, source: { operation: "orders", path: "name" } },
     { key: "orderDate", label: "Order Date", type: "date", source: { operation: "orders", path: "createdAt" } },
-    { key: "salesChannel", label: "Sales Channel", type: "string", source: { operation: "orders", path: "sourceName" } },
-    { key: "posLocation", ref: "locationName", label: "POS Location" },
+    { key: "salesChannel", label: "Sales Channel", type: "string", width: 16, source: { operation: "orders", path: "sourceName" } },
+    { key: "posLocation", ref: "locationName", label: "POS Location", width: 36 },
     // Unavailable: Shopify only grants the staff scope (read_users) to Plus/Advanced stores
     // and the client is on Grow. The column stays, empty, until the client decides.
     { key: "posStaff", label: "POS Staff", type: "string", available: false, unavailableReason: "Shopify only shares staff names with Plus and Advanced plans.", source: { operation: "orders", path: "staffMember.name" } },
-    { key: "collectionName", ref: "collectionName" },
-    { key: "productTitle", ref: "productTitle" },
-    { key: "sku", ref: "sku", label: "Product Variant SKU" },
-    { key: "barcode", ref: "barcode", label: "Product Variant Barcode" },
+    { key: "collectionName", ref: "collectionName", width: 28 },
+    { key: "productTitle", ref: "productTitle", width: 44 },
+    { key: "sku", ref: "sku", label: "Product Variant SKU", width: 22 },
+    { key: "barcode", ref: "barcode", label: "Product Variant Barcode", width: 24 },
     { key: "variantPrice", label: "Product Variant Price", type: "currency", source: { operation: "orders", path: "lineItems.originalUnitPriceSet" } },
     { key: "unitPriceBeforeVat", label: "Unit Price Before VAT", type: "currency", calculation: "unitPriceBeforeVat" },
     { key: "netItemsSold", label: "Net Items Sold", type: "number", calculation: "netItemsSold" },
     { key: "grossSales", label: "Gross Sales", type: "currency", calculation: "grossSales" },
     { key: "discounts", label: "Discounts", type: "currency", calculation: "discounts" },
-    { key: "discountCodeReason", label: "Discount Code/Reason", type: "string", source: { operation: "orders", path: "discountApplications" } },
+    { key: "discountCodeReason", label: "Discount Code/Reason", type: "string", width: 28, source: { operation: "orders", path: "discountApplications" } },
     { key: "netSales", label: "Net Sales", type: "currency", calculation: "netSales" },
     // Order-level: shown once per order, not per line item.
     { key: "shippingCharges", label: "Shipping Charges (excl. VAT)", type: "currency", calculation: "shippingExclVat", perOrder: true },
-    { key: "paymentMethod", label: "Payment Method", type: "string", source: { operation: "orders", path: "paymentGatewayNames" }, perOrder: true },
+    { key: "paymentMethod", label: "Payment Method", type: "string", width: 20, source: { operation: "orders", path: "paymentGatewayNames" }, perOrder: true },
     { key: "taxes", label: "Taxes", type: "currency", source: { operation: "orders", path: "lineItems.taxLines" } },
-    { key: "returnReason", label: "Return Reason", type: "string", source: { operation: "returns", path: "returnLineItems.returnReason" } },
+    { key: "returnReason", label: "Return Reason", type: "string", width: 22, source: { operation: "returns", path: "returnLineItems.returnReason" } },
     { key: "totalSales", ref: "totalSales" },
   ],
 

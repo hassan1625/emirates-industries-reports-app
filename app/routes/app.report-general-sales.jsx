@@ -11,7 +11,7 @@ import { STORE_TIME_ZONE } from "../config/store";
 import { addDays, todayInZone } from "../pipeline/dates";
 import { allowedValues, loadFilterOptions } from "../pipeline/filter-options";
 import { STAGES, isTerminalStage } from "../pipeline/job-stages";
-import { parseReportRequest } from "../pipeline/report-request";
+import { describeFilters, parseReportRequest } from "../pipeline/report-request";
 import { startReportJob } from "../pipeline/start-job";
 
 // This screen is the Report 1 request screen. Which filters and fields it shows
@@ -49,7 +49,7 @@ export const action = async ({ request }) => {
       shop: session.shop,
       reportType: REPORT_KEY,
       range: { start: range.start, end: range.end },
-      params: { reportKey: REPORT_KEY, filters, fields, localRange: { from: range.from, to: range.to, timeZone: range.timeZone } },
+      params: { reportKey: REPORT_KEY, filters, filterSummary: describeFilters(REPORT_KEY, filters, options), fields, localRange: { from: range.from, to: range.to, timeZone: range.timeZone } },
     });
     return { errors: {}, jobId: job.id };
   } catch (error) {
@@ -90,7 +90,7 @@ export default function GeneralSalesReport() {
   // Fetch the test preview once, when the data is ready.
   const previewedFor = useRef(null);
   useEffect(() => {
-    if (jobId && stage === STAGES.DATA_READY && previewedFor.current !== jobId) {
+    if (jobId && stage === STAGES.READY && previewedFor.current !== jobId) {
       previewedFor.current = jobId;
       loadPreview(`/app/report-jobs/${jobId}?preview=1`);
     }
@@ -111,14 +111,14 @@ export default function GeneralSalesReport() {
       {current && (
         <>
           <JobStatus status={current.job} />
-          {stage === STAGES.DATA_READY && (
+          {stage === STAGES.READY && (
             <s-section heading="Your request">
               <RequestSummary request={current.request} fieldLabels={fieldLabels} />
             </s-section>
           )}
         </>
       )}
-      {stage === STAGES.DATA_READY && !previewData && preview.state !== "idle" && <s-paragraph>Preparing the preview...</s-paragraph>}
+      {stage === STAGES.READY && !previewData && preview.state !== "idle" && <s-paragraph>Preparing the preview...</s-paragraph>}
       {previewData?.preview && <ReportPreview preview={previewData.preview} />}
       {previewData?.previewError && <s-banner tone="critical">Preview failed: {previewData.previewError}</s-banner>}
     </ReportRequestForm>
