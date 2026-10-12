@@ -10,11 +10,11 @@ import { STAGES, STAGE_INFO } from "../app/pipeline/job-stages.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 let vite;
-let JobStatus, RequestSummary;
+let JobStatus, RequestSummary, RecentReports;
 
 before(async () => {
   vite = await createServer({ root, configFile: false, logLevel: "error", server: { middlewareMode: true }, appType: "custom", optimizeDeps: { noDiscovery: true, include: [] }, esbuild: { jsx: "automatic" } });
-  ({ JobStatus, RequestSummary } = await vite.ssrLoadModule("/app/components/JobStatus.jsx"));
+  ({ JobStatus, RequestSummary, RecentReports } = await vite.ssrLoadModule("/app/components/JobStatus.jsx"));
 });
 after(async () => vite.close());
 
@@ -66,4 +66,43 @@ test("RequestSummary says 'no filters', and renders nothing without a request", 
   const html = render(RequestSummary, { request: { range: { from: "2026-09-01", to: "2026-09-30", timeZone: "Asia/Muscat" }, filters: {}, fields: ["orderName"] }, fieldLabels: { orderName: "Order Name" } });
   assert.match(html, /no filters/);
   assert.equal(render(RequestSummary, { request: null, fieldLabels: {} }), "");
+});
+
+const file = { name: "General-Sales-Report_2026-10-05_to_2026-10-11.xlsx", bytes: 22_872_652, rows: 172019 };
+
+test("a finished report shows its file, row count, size and a Download button", () => {
+  const html = render(JobStatus, { status: status(STAGES.READY), file, onDownload: () => {} });
+  assert.match(html, /General-Sales-Report_2026-10-05_to_2026-10-11\.xlsx/);
+  assert.match(html, /172,019 rows/);
+  assert.match(html, /21\.8 MB/);
+  assert.match(html, /Download Excel file/);
+});
+
+test("without a handler there is no Download button, and a download error is shown", () => {
+  assert.doesNotMatch(render(JobStatus, { status: status(STAGES.READY), file }), /Download Excel file/);
+  assert.match(render(JobStatus, { status: status(STAGES.READY), file, onDownload: () => {}, downloadError: "Could not prepare the download." }), /Could not prepare the download\./);
+});
+
+test("a running job says it can be left and found under Recent reports", () => {
+  const html = render(JobStatus, { status: status(STAGES.EVENTS_RUNNING) });
+  assert.match(html, /several minutes/);
+  assert.match(html, /leave this page/);
+  assert.match(html, /Recent reports/);
+});
+
+const job = (over = {}) => ({ id: "j1", stage: STAGES.READY, label: "Report ready", terminal: true, createdAt: "2026-10-13T10:04:00.000Z", range: { from: "2026-10-05", to: "2026-10-11" }, filterCount: 2, error: null, file, ...over });
+
+test("Recent reports lists each job with its period, status and a Download for finished ones", () => {
+  const html = render(RecentReports, { jobs: [job(), job({ id: "j2", stage: STAGES.FAILED, label: "Failed", file: null }), job({ id: "j3", stage: STAGES.EVENTS_RUNNING, label: "Collecting returns and exchanges", terminal: false, file: null })], onOpen: () => {}, onDownload: () => {} });
+  assert.match(html, /heading="Recent reports"/);
+  assert.match(html, /2026-10-05 to 2026-10-11/);
+  assert.match(html, /2 applied/);
+  assert.match(html, /13 Oct 2026, 14:04/); // 10:04 UTC is 14:04 in Muscat
+  assert.equal((html.match(/>Download</g) ?? []).length, 1); // only the finished report
+  assert.match(html, /View progress/);
+  assert.match(html, /Details/);
+});
+
+test("Recent reports renders nothing when there are none", () => {
+  assert.equal(render(RecentReports, { jobs: [] }), "");
 });

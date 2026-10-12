@@ -45,6 +45,8 @@ model ReportJob {
   eventsBulkOpId   String?
   productsBulkOpId String?
   resultFileUrl    String?
+  resultRows       Int?
+  resultBytes      Int?
   // Pipeline bookkeeping (Step 15): last error, downloaded export files on
   // disk, and the request (date range, filters, fields) as JSON text.
   error            String?

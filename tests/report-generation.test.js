@@ -115,6 +115,8 @@ describe("generateReport", () => {
     assert.match(db.row.resultFileUrl, /^local:jobs\/job1\/report\.xlsx$/);
     assert.ok(existsSync(fromLocalUrl(db.row.resultFileUrl)));
     assert.equal(fromLocalUrl(db.row.resultFileUrl), jobReportPath("job1"));
+    assert.equal(db.row.resultRows, 4);
+    assert.equal(db.row.resultBytes, outcome.bytes);
   });
 
   test("with no field selection the sheet has every column, in config order", async () => {

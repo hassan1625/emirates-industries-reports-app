@@ -2,6 +2,7 @@
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { STAGES, STAGE_INFO } from "../pipeline/job-stages";
+import { describeReportFile } from "../pipeline/report-file";
 
 const parseParams = (text) => {
   try {
@@ -20,6 +21,7 @@ export const loader = async ({ request, params }) => {
   const requested = parseParams(job.params);
   const result = {
     job: { id: job.id, stage: job.stage, label: info.label, detail: info.detail, progress: info.progress, error: job.error, createdAt: job.createdAt, updatedAt: job.updatedAt },
+    file: describeReportFile(job),
     request: { reportKey: requested.reportKey, range: requested.localRange ?? null, filters: requested.filters ?? {}, fields: requested.fields ?? null },
   };
 

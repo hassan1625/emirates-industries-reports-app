@@ -107,7 +107,7 @@ export async function generateReport({ db, admin, jobId, deps = {} }) {
       },
     });
 
-    await db.reportJob.update({ where: { id: job.id }, data: { stage: STAGES.READY, resultFileUrl: toLocalUrl(filePath), error: null } });
+    await db.reportJob.update({ where: { id: job.id }, data: { stage: STAGES.READY, resultFileUrl: toLocalUrl(filePath), resultRows: rowCount, resultBytes: bytes, error: null } });
     return { action: "ready", rows: rowCount, bytes, seconds: (Date.now() - started) / 1000 };
   } catch (error) {
     await db.reportJob.update({ where: { id: job.id }, data: { stage: STAGES.FAILED, error: `Could not build the report file: ${error.message}` } });

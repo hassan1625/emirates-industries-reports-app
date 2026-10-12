@@ -1,16 +1,18 @@
-import { useEffect } from "react";
-import { useFetcher, useLoaderData, useSearchParams } from "react-router";
+import { useEffect, useRef } from "react";
+import { useFetcher, useLoaderData, useRevalidator, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import ReportRequestForm from "../components/ReportRequestForm";
-import { JobStatus, RequestSummary } from "../components/JobStatus";
+import { JobStatus, RecentReports, RequestSummary } from "../components/JobStatus";
+import { useReportDownload } from "../components/useReportDownload";
 import { defaultFieldKeys, getReportFields } from "../config";
 import { STORE_TIME_ZONE } from "../config/store";
 import { addDays, todayInZone } from "../pipeline/dates";
 import { allowedValues, loadFilterOptions } from "../pipeline/filter-options";
 import { STAGES, isTerminalStage } from "../pipeline/job-stages";
 import { describeFilters, parseReportRequest } from "../pipeline/report-request";
+import { listRecentJobs } from "../pipeline/recent-jobs";
 import { startReportJob } from "../pipeline/start-job";
 
 // This screen is the Report 1 request screen. Which filters and fields it shows
@@ -23,6 +25,7 @@ export const loader = async ({ request }) => {
   const today = todayInZone(STORE_TIME_ZONE);
   return {
     options: await loadFilterOptions(admin, session.shop),
+    recent: await listRecentJobs({ db, shop: session.shop, reportType: REPORT_KEY }),
     defaults: { dateRange: { from: addDays(today, -29), to: today }, fields: defaultFieldKeys(REPORT_KEY) }, // last 30 days
   };
 };
@@ -58,7 +61,9 @@ export const action = async ({ request }) => {
 };
 
 export default function GeneralSalesReport() {
-  const { options, defaults } = useLoaderData();
+  const { options, defaults, recent } = useLoaderData();
+  const revalidator = useRevalidator();
+  const { download, busyId, error: downloadError } = useReportDownload();
   const submit = useFetcher();
   const status = useFetcher();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -84,6 +89,15 @@ export default function GeneralSalesReport() {
     return () => clearInterval(timer);
   }, [jobId, terminal, loadStatus]);
 
+  // When the watched job reaches a final stage, refresh the Recent reports list once.
+  const refreshedFor = useRef(null);
+  useEffect(() => {
+    if (jobId && terminal && refreshedFor.current !== jobId) {
+      refreshedFor.current = jobId;
+      revalidator.revalidate();
+    }
+  }, [jobId, terminal, revalidator]);
+
   return (
     <ReportRequestForm
       reportKey={REPORT_KEY}
@@ -96,7 +110,7 @@ export default function GeneralSalesReport() {
       {submit.data?.errors?.form && <s-banner tone="critical">{submit.data.errors.form}</s-banner>}
       {current && (
         <>
-          <JobStatus status={current.job} />
+          <JobStatus status={current.job} file={current.file} onDownload={() => download(jobId)} downloading={busyId === jobId} downloadError={downloadError} />
           {stage === STAGES.READY && (
             <s-section heading="Your request">
               <RequestSummary request={current.request} fieldLabels={fieldLabels} />
@@ -104,6 +118,8 @@ export default function GeneralSalesReport() {
           )}
         </>
       )}
+      {downloadError && !current?.file && <s-banner tone="critical">{downloadError}</s-banner>}
+      <RecentReports jobs={recent} onOpen={(id) => setSearchParams({ job: id })} onDownload={download} downloadingId={busyId} />
     </ReportRequestForm>
   );
 }
