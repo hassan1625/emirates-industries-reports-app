@@ -195,3 +195,14 @@ test("MultiFilter: open shows every choice, checked for chosen values, and a cou
 test("MultiFilter: an error is shown under the filter", () => {
   assert.match(renderFilter({ error: "Pick again" }), /<s-text tone="critical">Pick again<\/s-text>/);
 });
+
+test("the Refund Credit screen has its filters but no Columns section", () => {
+  const html = render({ reportKey: "refundCredit" });
+  assert.match(html, /<s-page heading="Refund Credit Report">/);
+  assert.match(html, /exchange credit/);
+  for (const label of ["Sales Channel", "POS Location", "POS Staff"]) assert.ok(html.includes(`>${label}</s-text>`), label);
+  assert.doesNotMatch(html, />Collection Name</);
+  assert.doesNotMatch(html, /<s-section heading="Columns">/);
+  const summary = html.slice(html.indexOf('<div slot="aside"'));
+  assert.doesNotMatch(summary, /Columns/);
+});

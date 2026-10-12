@@ -7,6 +7,7 @@ import { stockReport } from "./r2-stock-by-location.js";
 import { salesComparisonReport } from "./r3-sales-comparison.js";
 import { totalSalesMatrixReport } from "./r4-total-sales-matrix.js";
 import { skuQuantityReport } from "./r5-sku-quantity.js";
+import { refundCreditReport } from "./r6-refund-credit.js";
 
 export const REPORTS = Object.freeze({
   [generalSalesReport.key]: generalSalesReport,
@@ -14,6 +15,7 @@ export const REPORTS = Object.freeze({
   [salesComparisonReport.key]: salesComparisonReport,
   [totalSalesMatrixReport.key]: totalSalesMatrixReport,
   [skuQuantityReport.key]: skuQuantityReport,
+  [refundCreditReport.key]: refundCreditReport,
 });
 
 export function getReport(key) {

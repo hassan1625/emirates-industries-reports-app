@@ -202,3 +202,26 @@ describe("describeFilters", () => {
     assert.deepEqual(describeFilters(REPORT, {}, options), []);
   });
 });
+
+describe("Refund Credit Report request", () => {
+  const credit = "refundCredit";
+  const range = { dateRange: { from: "2026-08-24", to: "2026-08-31" } };
+
+  test("takes the date range and the channel, location and staff filters, and has no field selection", () => {
+    const result = parseReportRequest(credit, { ...range, filters: { salesChannel: ["pos"], posStaff: ["Sara"] } }, { allowedOptions: { salesChannel: ["pos"], posStaff: ["Sara"] } });
+    assert.equal(result.ok, true);
+    assert.deepEqual(result.value.filters, { salesChannel: ["pos"], posStaff: ["Sara"] });
+    assert.equal(result.value.fields, null);
+    assert.equal(hasFieldSelection(credit), false);
+  });
+
+  test("a collection filter is not part of this report and is ignored", () => {
+    const result = parseReportRequest(credit, { ...range, filters: { collection: ["Boys"] } });
+    assert.equal(result.ok, true);
+    assert.deepEqual(result.value.filters, {});
+  });
+
+  test("the date range is required", () => {
+    assert.match(parseReportRequest(credit, {}).errors.dateRange, /start and an end date/);
+  });
+});

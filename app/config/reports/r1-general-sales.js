@@ -2,6 +2,7 @@
 // `ref` entries point at app/config/schema.js; all other entries are defined
 // here. Rows are built from dated sales events (see app/pipeline/ledger-rows.js).
 import { DATE_RANGE_MODES } from "../schema.js";
+import { posLocationFilter, posStaffFilter, salesChannelFilter } from "../shared-filters.js";
 
 export const generalSalesReport = {
   id: "R1",
@@ -50,9 +51,9 @@ export const generalSalesReport = {
 
   filters: [
     { key: "dateRange", ref: "dateRange", mode: DATE_RANGE_MODES.SINGLE, required: true },
-    { key: "salesChannel", label: "Sales Channel", allLabel: "All sales channels", type: "multiSelect", matchOn: "sourceName", source: { operation: "orders", path: "sourceName" } },
-    { key: "posLocation", ref: "locationName", label: "POS Location", allLabel: "All locations", type: "multiSelect", matchOn: "locationId" },
-    { key: "posStaff", label: "POS Staff", allLabel: "All staff", type: "multiSelect", matchOn: "posStaff", source: { operation: "shopifyql", path: "staff_member_name" } },
+    salesChannelFilter,
+    posLocationFilter,
+    posStaffFilter,
     // Shipping rows have no collection, so a collection filter leaves them out.
     { key: "collection", ref: "collectionName", allLabel: "All collections", type: "multiSelect", matchOn: "collectionName" },
   ],

@@ -47,6 +47,8 @@ const EVENTS = [
   sale("ORDER", "PRODUCT", "gid://shopify/LineItem/3", 2, 210, 10, "A3a"),
   { __typename: "ReturnAgreement", id: "A3b", happenedAt: "2026-09-10T08:00:00Z", reason: "RETURN", return: { id: "gid://shopify/Return/3" }, __parentId: "O3" },
   sale("RETURN", "PRODUCT", "gid://shopify/LineItem/3", -1, -105, -5, "A3b"),
+  // exchange credit Shopify keeps on that return: no item, no tax
+  { actionType: "RETURN", lineType: "ADJUSTMENT", quantity: null, totalAmount: money(50), totalTaxAmount: money(0), totalDiscountAmountBeforeTaxes: money(0), __parentId: "A3b" },
 ];
 const PRODUCTS = [
   { id: "P1", title: "Trouser", status: "ACTIVE", tags: [] },
@@ -295,7 +297,7 @@ describe("generateReport", () => {
     const db = fakeDb({ ...files, reportType: "debugPipeline" });
     assert.equal((await generateReport({ db, jobId: "job1" })).action, "not-supported");
     assert.equal(db.row.stage, STAGES.DATA_READY);
-    assert.deepEqual(GENERATED_REPORT_TYPES, ["generalSales"]);
+    assert.deepEqual(GENERATED_REPORT_TYPES, ["generalSales", "refundCredit"]);
   });
 
   test("an unknown job id is an error", async () => {
@@ -303,7 +305,107 @@ describe("generateReport", () => {
   });
 });
 
+describe("Refund Credit Report", () => {
+  let dir;
+  let files;
+  const originalRoot = process.env.REPORT_STORAGE_DIR;
+  before(async () => {
+    dir = await mkdtemp(join(tmpdir(), "credit-"));
+    process.env.REPORT_STORAGE_DIR = dir;
+    files = { ordersFile: join(dir, "orders.jsonl"), eventsFile: join(dir, "events.jsonl"), productsFile: join(dir, "products.jsonl") };
+    await writeFile(files.ordersFile, jsonl(ORDERS));
+    await writeFile(files.eventsFile, jsonl(EVENTS));
+    await writeFile(files.productsFile, jsonl(PRODUCTS));
+  });
+  after(async () => {
+    if (originalRoot === undefined) delete process.env.REPORT_STORAGE_DIR;
+    else process.env.REPORT_STORAGE_DIR = originalRoot;
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  const creditRequest = (extra = {}) => JSON.stringify({ reportKey: "refundCredit", range: RANGE, localRange: LOCAL, filters: {}, ...extra });
+  const open = async (db) => {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(fromLocalUrl(db.row.resultFileUrl));
+    return workbook;
+  };
+
+  test("lists the credit with its order, dates, staff, items and reason, plus a total row", async () => {
+    const db = fakeDb({ ...files, reportType: "refundCredit", params: creditRequest() });
+    const outcome = await generateReport({ db, admin: {}, jobId: "job1", deps: withStaff });
+    assert.equal(outcome.action, "ready", db.row.error);
+    assert.equal(outcome.rows, 1); // the total row is not counted
+
+    const sheet = (await open(db)).getWorksheet("Refund Credit Report");
+    const headers = sheet.getRow(1).values.slice(1);
+    assert.deepEqual(headers, ["Order Name", "Event Date", "Original Order Date", "Sales Channel", "POS Location", "POS Staff", "Credit Amount", "Items Returned", "Return Reason"]);
+    const row = sheet.getRow(2);
+    const at = (label) => row.getCell(headers.indexOf(label) + 1).value;
+    assert.equal(at("Order Name"), "#3");
+    assert.equal(at("Event Date").toISOString(), "2026-09-10T12:00:00.000Z");
+    assert.equal(at("Original Order Date").toISOString(), "2026-08-28T12:00:00.000Z");
+    assert.equal(at("Sales Channel"), "Point of Sale");
+    assert.equal(at("POS Staff"), "Omar");
+    assert.equal(at("Credit Amount"), 50);
+    assert.equal(at("Items Returned"), "Jacket × 1");
+    assert.equal(at("Return Reason"), "Too big");
+    const total = sheet.getRow(3);
+    assert.equal(total.getCell(1).value, "Total");
+    assert.equal(total.getCell(headers.indexOf("Credit Amount") + 1).value, 50);
+  });
+
+  test("a Summary sheet gives the counts, the total and a split by channel", async () => {
+    const db = fakeDb({ ...files, reportType: "refundCredit", params: creditRequest() });
+    await generateReport({ db, admin: {}, jobId: "job1", deps: withStaff });
+    const summary = (await open(db)).getWorksheet("Summary");
+    const lines = new Map();
+    summary.eachRow((r) => lines.set(r.getCell(1).value, r.getCell(2).value));
+    assert.equal(lines.get("Credits in this period"), 1);
+    assert.equal(lines.get("Orders affected"), 1);
+    assert.equal(lines.get("Total credit (AED, no VAT)"), 50);
+    assert.equal(lines.get("Point of Sale: credits"), 1);
+    assert.equal(lines.get("Point of Sale: amount"), 50);
+  });
+
+  test("the Request sheet explains the credit and how it reconciles", async () => {
+    const db = fakeDb({ ...files, reportType: "refundCredit", params: creditRequest() });
+    await generateReport({ db, admin: {}, jobId: "job1", deps: withStaff });
+    const info = (await open(db)).getWorksheet("Request");
+    const notes = [];
+    info.eachRow((r) => r.getCell(1).value === "Note" && notes.push(r.getCell(2).value));
+    assert.ok(notes.some((note) => /exchange credit/.test(note)));
+    assert.ok(notes.some((note) => /General Sales Report's Net sales/.test(note)));
+  });
+
+  test("filters narrow the credits; a filter that matches none leaves an empty sheet with a zero total", async () => {
+    const none = fakeDb({ ...files, reportType: "refundCredit", params: creditRequest({ filters: { salesChannel: ["web"] } }) });
+    const outcome = await generateReport({ db: none, admin: {}, jobId: "job1", deps: withStaff });
+    assert.equal(outcome.rows, 0);
+    const total = (await open(none)).getWorksheet("Refund Credit Report").getRow(2);
+    assert.equal(total.getCell(1).value, "Total");
+    assert.equal(total.getCell(7).value, 0);
+
+    const staff = fakeDb({ ...files, reportType: "refundCredit", params: creditRequest({ filters: { posStaff: ["Sara"] } }) });
+    assert.equal((await generateReport({ db: staff, admin: {}, jobId: "job1", deps: withStaff })).rows, 0); // Sara has no credit
+  });
+
+  test("credits outside the period are left out", async () => {
+    const db = fakeDb({ ...files, reportType: "refundCredit", params: creditRequest({ range: { start: "2026-08-31T20:00:00.000Z", end: "2026-09-05T19:59:59.000Z" } }) });
+    assert.equal((await generateReport({ db, admin: {}, jobId: "job1", deps: withStaff })).rows, 0);
+  });
+
+  test("the General Sales Report ignores the credit", async () => {
+    const db = fakeDb({ ...files, params: request() });
+    const outcome = await generateReport({ db, admin: {}, jobId: "job1", deps: withStaff });
+    assert.equal(outcome.rows, 4);
+  });
+});
+
 describe("buildReportColumns", () => {
+  test("a report without field selection always has all its columns", () => {
+    assert.equal(buildReportColumns("refundCredit", undefined).length, 9);
+    assert.equal(buildReportColumns("refundCredit", ["orderName"]).length, 9);
+  });
   test("keeps config order and drops unavailable fields", () => {
     assert.deepEqual(buildReportColumns("generalSales", ["totalSales", "posStaff", "sku"]).map((c) => c.key), ["posStaff", "sku", "totalSales"]);
     withStaffUnavailable(() => assert.deepEqual(buildReportColumns("generalSales", ["totalSales", "posStaff", "sku"]).map((c) => c.key), ["sku", "totalSales"]));

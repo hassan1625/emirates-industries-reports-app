@@ -36,11 +36,16 @@ const columnWidth = (column) => column.width ?? Math.max(column.label.length + 3
 
 // columns  [{ key, label, type, width? }] in sheet order
 // rows     async/sync iterable of objects keyed by column key
+// footer   optional values (keyed by column key) written bold under the last row
+//          (a totals row); it is not counted in `rows`
+// summary  optional extra sheet: [{ label, value, type? }] ("currency" and
+//          "number" values are numbers, anything else text); a row with no
+//          value is a bold heading
 // request  { reportLabel, generatedAt: Date (store wall-clock, like Order Date), range: { from, to, timeZone },
 //            filters: [{ label, values: string[] }], notes: string[] } for the
 //            "Request" sheet. Optional.
 // Resolves to { rows, bytes } (rows excludes the header).
-export async function writeReportXlsx({ filePath, sheetName, columns, rows, request }) {
+export async function writeReportXlsx({ filePath, sheetName, columns, rows, footer, summary, request }) {
   await ensureParentDir(filePath);
   const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({ filename: filePath, useStyles: true, useSharedStrings: false });
   const sheet = workbook.addWorksheet(sheetName.slice(0, 31), { views: [{ state: "frozen", ySplit: 1 }] });
@@ -65,7 +70,24 @@ export async function writeReportXlsx({ filePath, sheetName, columns, rows, requ
     sheet.addRow(columns.map((column) => toCellValue(values[column.key], column.type))).commit();
     count += 1;
   }
+  if (footer) {
+    const total = sheet.addRow(columns.map((column) => toCellValue(footer[column.key], column.type)));
+    total.font = { bold: true };
+    total.commit();
+  }
   sheet.commit();
+
+  if (summary?.length) {
+    const page = workbook.addWorksheet("Summary");
+    page.columns = [{ width: 44 }, { width: 24 }];
+    for (const { label, value, type } of summary) {
+      const row = page.addRow([label, value === undefined || value === null ? null : toCellValue(value, type)]);
+      if (value === undefined || value === null) row.font = { bold: true };
+      else if (type === "currency" || type === "number") row.getCell(2).numFmt = NUMBER_FORMATS[type];
+      row.commit();
+    }
+    page.commit();
+  }
 
   if (request) {
     const info = workbook.addWorksheet("Request");

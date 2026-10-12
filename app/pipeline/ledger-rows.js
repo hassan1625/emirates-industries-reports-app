@@ -71,7 +71,7 @@ function mergeSales(agreement) {
 }
 
 // Return reasons for one line in one return event.
-function reasonFor(order, returnId, lineId) {
+export function reasonFor(order, returnId, lineId) {
   const reasons = [];
   for (const ret of order.returns ?? []) {
     if (returnId && ret.id !== returnId) continue;
