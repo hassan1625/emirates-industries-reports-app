@@ -2,6 +2,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { buildRowFilter, selectColumns } from "../app/pipeline/report-filter.js";
 import { getReportFilters } from "../app/config/index.js";
+import { withStaffUnavailable } from "./helpers/staff-unavailable.js";
 
 const REPORT = "generalSales";
 const row = (meta) => ({ values: {}, meta: { sourceName: "pos", locationId: "L1", collectionName: "Boys", kind: "line", ...meta } });
@@ -9,7 +10,7 @@ const row = (meta) => ({ values: {}, meta: { sourceName: "pos", locationId: "L1"
 describe("config", () => {
   test("every available select filter of Report 1 says which row property it matches", () => {
     const selects = getReportFilters(REPORT).filter((f) => f.type === "multiSelect" && f.available !== false);
-    assert.deepEqual(selects.map((f) => [f.key, f.matchOn]), [["salesChannel", "sourceName"], ["posLocation", "locationId"], ["collection", "collectionName"]]);
+    assert.deepEqual(selects.map((f) => [f.key, f.matchOn]), [["salesChannel", "sourceName"], ["posLocation", "locationId"], ["posStaff", "posStaff"], ["collection", "collectionName"]]);
   });
 });
 
@@ -59,8 +60,15 @@ describe("buildRowFilter", () => {
     assert.equal(keep(row({ collectionName: "Girls" })), false);
   });
 
-  test("the unavailable POS Staff filter never excludes anything", () => {
-    assert.equal(buildRowFilter(REPORT, { posStaff: ["Someone"] })(row({})), true);
+  test("POS Staff matches the staff member on the row; rows without staff are excluded", () => {
+    const keep = buildRowFilter(REPORT, { posStaff: ["Sara", "Omar"] });
+    assert.equal(keep(row({ posStaff: "Omar" })), true);
+    assert.equal(keep(row({ posStaff: "Ali" })), false);
+    assert.equal(keep(row({ posStaff: null })), false); // online orders have no staff
+  });
+
+  test("a filter marked unavailable never excludes anything", () => {
+    withStaffUnavailable(() => assert.equal(buildRowFilter(REPORT, { posStaff: ["Someone"] })(row({})), true));
   });
 
   test("unknown filter keys are ignored", () => {

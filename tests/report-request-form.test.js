@@ -8,14 +8,17 @@ import { createServer } from "vite";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { getReportFilters } from "../app/config/index.js";
+import { withStaffUnavailable } from "./helpers/staff-unavailable.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 let vite;
 let Form;
+let viteReport; // the config module instance the component reads
 
 before(async () => {
   vite = await createServer({ root, configFile: false, logLevel: "error", server: { middlewareMode: true }, appType: "custom", optimizeDeps: { noDiscovery: true, include: [] }, esbuild: { jsx: "automatic" } });
   Form = (await vite.ssrLoadModule("/app/components/ReportRequestForm.jsx")).default;
+  viteReport = (await vite.ssrLoadModule("/app/config/reports/r1-general-sales.js")).generalSalesReport;
 });
 after(async () => {
   await vite.close();
@@ -24,6 +27,7 @@ after(async () => {
 const options = {
   salesChannel: [{ value: "pos", label: "Point of Sale" }, { value: "web", label: "Online Store" }],
   posLocation: [{ value: "L1", label: "Al Ain" }],
+  posStaff: [],
   collection: [{ value: "Boys", label: "Boys" }],
 };
 const render = (props = {}) =>
@@ -51,12 +55,21 @@ test("renders every select filter the config lists, in config order, with its op
   assert.match(html, /<s-choice value="Boys">Boys<\/s-choice>/);
 });
 
-test("the filter that is unavailable on this plan is disabled and says why", () => {
-  const html = render();
+test("a filter marked unavailable is disabled and says why", () => {
+  withStaffUnavailable(() => {
+    const html = render();
+    const staff = html.match(/<s-choice-list label="POS Staff"[^>]*>/)[0];
+    assert.match(staff, /disabled="true"/);
+    assert.match(staff, /Not available on this plan/);
+    assert.doesNotMatch(html.match(/<s-choice-list label="Sales Channel"[^>]*>/)[0], /disabled/);
+  }, viteReport);
+});
+
+test("POS Staff is an ordinary filter, with the staff names as choices", () => {
+  const html = render({ options: { ...options, posStaff: [{ value: "Sara", label: "Sara" }] } });
   const staff = html.match(/<s-choice-list label="POS Staff"[^>]*>/)[0];
-  assert.match(staff, /disabled="true"/);
-  assert.match(staff, /Plus and Advanced plans/);
-  assert.doesNotMatch(html.match(/<s-choice-list label="Sales Channel"[^>]*>/)[0], /disabled/);
+  assert.doesNotMatch(staff, /disabled/);
+  assert.match(html, /<s-choice value="Sara">Sara<\/s-choice>/);
 });
 
 test("server errors appear on the right fields", () => {
@@ -86,11 +99,11 @@ import { getReportFields, defaultFieldKeys } from "../app/config/index.js";
 
 const checkboxTag = (html, label) => html.match(new RegExp(`<s-checkbox[^>]*label="${label}"[^>]*>`))?.[0];
 
-test("Fields section lists all 21 fields from the config, in column order, plus Select all", () => {
+test("Fields section lists all 23 fields from the config, in column order, plus Select all", () => {
   const html = render({ defaults: { dateRange: { from: "2026-09-01", to: "2026-09-30" }, fields: defaultFieldKeys("generalSales") } });
   assert.match(html, /<s-section heading="Fields">/);
   const labels = getReportFields("generalSales").map((f) => f.label);
-  assert.equal(labels.length, 21);
+  assert.equal(labels.length, 23);
   // Only look inside the Fields section: some labels (e.g. "Sales Channel") are
   // also filter titles earlier on the page.
   const fieldsHtml = html.slice(html.indexOf('<s-section heading="Fields">'));
@@ -100,24 +113,35 @@ test("Fields section lists all 21 fields from the config, in column order, plus 
 
 test("by default every available field is checked, Select all is checked, and the count says so", () => {
   const html = render({ defaults: { dateRange: { from: "2026-09-01", to: "2026-09-30" }, fields: defaultFieldKeys("generalSales") } });
-  assert.match(html, /20 of 20 fields selected/);
+  assert.match(html, /23 of 23 fields selected/);
   assert.match(checkboxTag(html, "Select all"), /checked="true"/);
   assert.doesNotMatch(checkboxTag(html, "Select all"), /indeterminate/);
   assert.match(checkboxTag(html, "Order Name"), /checked="true"/);
   assert.match(checkboxTag(html, "Total Sales"), /checked="true"/);
 });
 
-test("POS Staff is listed, disabled, unchecked, and explains why", () => {
+test("POS Staff and the new columns are listed and checked by default", () => {
   const html = render({ defaults: { dateRange: { from: "2026-09-01", to: "2026-09-30" }, fields: defaultFieldKeys("generalSales") } });
-  const staff = checkboxTag(html, "POS Staff");
-  assert.match(staff, /disabled="true"/);
-  assert.doesNotMatch(staff, /checked/);
-  assert.match(staff, /Plus and Advanced plans/);
+  for (const label of ["POS Staff", "Order Type", "Is Shipping Charges"]) {
+    const tag = checkboxTag(html, label);
+    assert.match(tag, /checked="true"/);
+    assert.doesNotMatch(tag, /disabled/);
+  }
+});
+
+test("a field marked unavailable is listed, disabled, unchecked, and explains why", () => {
+  withStaffUnavailable(() => {
+    const html = render({ defaults: { dateRange: { from: "2026-09-01", to: "2026-09-30" }, fields: defaultFieldKeys("generalSales") } });
+    const staff = checkboxTag(html, "POS Staff");
+    assert.match(staff, /disabled="true"/);
+    assert.doesNotMatch(staff, /checked/);
+    assert.match(staff, /Not available on this plan/);
+  }, viteReport);
 });
 
 test("a partial selection shows Select all as mixed, not checked", () => {
   const html = render({ defaults: { dateRange: { from: "2026-09-01", to: "2026-09-30" }, fields: ["orderName", "sku"] } });
-  assert.match(html, /2 of 20 fields selected/);
+  assert.match(html, /2 of 23 fields selected/);
   const all = checkboxTag(html, "Select all");
   assert.match(all, /indeterminate="true"/);
   assert.doesNotMatch(all, /checked/);
@@ -127,13 +151,13 @@ test("a partial selection shows Select all as mixed, not checked", () => {
 
 test("nothing selected: Select all is unchecked and a server error is shown", () => {
   const html = render({ defaults: { dateRange: { from: "2026-09-01", to: "2026-09-30" }, fields: [] }, errors: { fields: "Choose at least one field" } });
-  assert.match(html, /0 of 20 fields selected/);
+  assert.match(html, /0 of 23 fields selected/);
   assert.doesNotMatch(checkboxTag(html, "Select all"), /checked|indeterminate/);
   assert.match(html, /<s-banner tone="critical">Choose at least one field<\/s-banner>/);
 });
 
 test("without `defaults.fields` everything available starts checked", () => {
-  assert.match(render(), /20 of 20 fields selected/);
+  assert.match(render(), /23 of 23 fields selected/);
 });
 
 test("no attribute is ever rendered as the string 'false'", () => {

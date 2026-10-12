@@ -97,7 +97,7 @@ export async function recoverStuckJobs({ db, getAdmin, now = new Date(), config 
           record("waiting");
           continue;
         }
-        const generated = await generate({ db, jobId: job.id });
+        const generated = await generate({ db, admin: await getAdmin(job.shop), jobId: job.id });
         record(`generated:${generated.action}`);
         continue;
       }

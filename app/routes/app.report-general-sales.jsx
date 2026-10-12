@@ -1,10 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useFetcher, useLoaderData, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import ReportRequestForm from "../components/ReportRequestForm";
-import ReportPreview from "../components/ReportPreview";
 import { JobStatus, RequestSummary } from "../components/JobStatus";
 import { defaultFieldKeys, getReportFields } from "../config";
 import { STORE_TIME_ZONE } from "../config/store";
@@ -20,10 +19,10 @@ const REPORT_KEY = "generalSales";
 const POLL_MS = 4000;
 
 export const loader = async ({ request }) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const today = todayInZone(STORE_TIME_ZONE);
   return {
-    options: await loadFilterOptions(admin),
+    options: await loadFilterOptions(admin, session.shop),
     defaults: { dateRange: { from: addDays(today, -29), to: today }, fields: defaultFieldKeys(REPORT_KEY) }, // last 30 days
   };
 };
@@ -37,7 +36,7 @@ const readRequest = async (request) => {
 // Validates the request again on the server, then starts the real job.
 export const action = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
-  const options = await loadFilterOptions(admin);
+  const options = await loadFilterOptions(admin, session.shop);
   const result = parseReportRequest(REPORT_KEY, await readRequest(request), { allowedOptions: allowedValues(options) });
   if (!result.ok) return { errors: result.errors, jobId: null };
 
@@ -62,7 +61,6 @@ export default function GeneralSalesReport() {
   const { options, defaults } = useLoaderData();
   const submit = useFetcher();
   const status = useFetcher();
-  const preview = useFetcher();
   const [searchParams, setSearchParams] = useSearchParams();
   const fieldLabels = Object.fromEntries(getReportFields(REPORT_KEY).map((field) => [field.key, field.label]));
 
@@ -77,7 +75,6 @@ export default function GeneralSalesReport() {
   const stage = current?.job.stage;
   const terminal = stage ? isTerminalStage(stage) : false;
   const loadStatus = status.load;
-  const loadPreview = preview.load;
 
   // Poll until the job reaches a final stage.
   useEffect(() => {
@@ -86,17 +83,6 @@ export default function GeneralSalesReport() {
     const timer = setInterval(() => loadStatus(`/app/report-jobs/${jobId}`), POLL_MS);
     return () => clearInterval(timer);
   }, [jobId, terminal, loadStatus]);
-
-  // Fetch the test preview once, when the data is ready.
-  const previewedFor = useRef(null);
-  useEffect(() => {
-    if (jobId && stage === STAGES.READY && previewedFor.current !== jobId) {
-      previewedFor.current = jobId;
-      loadPreview(`/app/report-jobs/${jobId}?preview=1`);
-    }
-  }, [jobId, stage, loadPreview]);
-
-  const previewData = preview.data?.job?.id === jobId ? preview.data : null;
 
   return (
     <ReportRequestForm
@@ -118,9 +104,6 @@ export default function GeneralSalesReport() {
           )}
         </>
       )}
-      {stage === STAGES.READY && !previewData && preview.state !== "idle" && <s-paragraph>Preparing the preview...</s-paragraph>}
-      {previewData?.preview && <ReportPreview preview={previewData.preview} />}
-      {previewData?.previewError && <s-banner tone="critical">Preview failed: {previewData.previewError}</s-banner>}
     </ReportRequestForm>
   );
 }

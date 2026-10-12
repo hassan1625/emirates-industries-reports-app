@@ -8,6 +8,6 @@ import { generateReport } from "./report-generation.js";
 export async function advanceAndGenerate({ db, admin, result, deps = {} }) {
   const outcome = await (deps.advanceJob ?? advanceJob)({ db, admin, result, deps: deps.chain });
   if (outcome.action !== "data-ready") return outcome;
-  const generated = await (deps.generateReport ?? generateReport)({ db, jobId: result.job.id, deps: deps.generate });
+  const generated = await (deps.generateReport ?? generateReport)({ db, admin, jobId: result.job.id, deps: deps.generate });
   return { ...outcome, action: generated.action === "ready" ? "ready" : `data-ready:${generated.action}`, generated };
 }

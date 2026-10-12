@@ -43,7 +43,7 @@ describe("date range", () => {
 });
 
 describe("select filters (driven by the config)", () => {
-  const allowed = { salesChannel: ["pos", "web"], posLocation: ["L1", "L2"], collection: ["Boys", "Girls"] };
+  const allowed = { salesChannel: ["pos", "web"], posLocation: ["L1", "L2"], posStaff: ["Sara"], collection: ["Boys", "Girls"] };
 
   test("every select filter in the config is accepted", () => {
     const keys = getReportFilters(REPORT).filter((f) => f.type === "multiSelect").map((f) => f.key);
@@ -66,11 +66,20 @@ describe("select filters (driven by the config)", () => {
     assert.match(result.errors.salesChannel, /no longer exists/);
   });
 
-  test("POS Staff is unavailable on this plan: accepted but ignored, never an error", () => {
-    const result = parseReportRequest(REPORT, { ...good, filters: { posStaff: ["Someone"] } });
-    assert.equal(result.ok, true);
-    assert.ok(!("posStaff" in result.value.filters));
-    assert.deepEqual(result.value.ignored, ["posStaff"]);
+  test("POS Staff is a normal filter: chosen names are kept and checked against the options", () => {
+    const ok = parseReportRequest(REPORT, { ...good, filters: { posStaff: ["Sara"] } }, { allowedOptions: allowed });
+    assert.deepEqual(ok.value.filters, { posStaff: ["Sara"] });
+    const bad = parseReportRequest(REPORT, { ...good, filters: { posStaff: ["Nobody"] } }, { allowedOptions: allowed });
+    assert.match(bad.errors.posStaff, /no longer exists/);
+  });
+
+  test("a filter marked unavailable is accepted but ignored, never an error", () => {
+    withStaffUnavailable(() => {
+      const result = parseReportRequest(REPORT, { ...good, filters: { posStaff: ["Someone"] } });
+      assert.equal(result.ok, true);
+      assert.ok(!("posStaff" in result.value.filters));
+      assert.deepEqual(result.value.ignored, ["posStaff"]);
+    });
   });
 
   test("unknown filter keys sent by a client are ignored", () => {
@@ -102,24 +111,31 @@ test("reports whose date range mode is not supported yet report it instead of cr
 });
 
 import { getSelectableFields, defaultFieldKeys, hasFieldSelection } from "../app/config/index.js";
+import { withStaffUnavailable } from "./helpers/staff-unavailable.js";
 
 describe("field selection (Report 1)", () => {
   const ALL_AVAILABLE = defaultFieldKeys(REPORT);
 
-  test("Report 1 offers field selection with all 21 fields as candidates, in column order", () => {
+  test("Report 1 offers field selection with all 23 fields as candidates, in column order", () => {
     assert.equal(hasFieldSelection(REPORT), true);
     const fields = getSelectableFields(REPORT);
-    assert.equal(fields.length, 21);
-    assert.deepEqual(fields.slice(0, 3).map((f) => f.key), ["orderName", "orderDate", "salesChannel"]);
+    assert.equal(fields.length, 23);
+    assert.deepEqual(fields.slice(0, 3).map((f) => f.key), ["orderName", "orderDate", "orderType"]);
     assert.equal(fields.at(-1).key, "totalSales");
   });
 
-  test("POS Staff is a candidate but unavailable, so it is not on by default", () => {
-    const staff = getSelectableFields(REPORT).find((f) => f.key === "posStaff");
-    assert.equal(staff.available, false);
-    assert.match(staff.unavailableReason, /Plus and Advanced/);
-    assert.equal(ALL_AVAILABLE.length, 20);
-    assert.ok(!ALL_AVAILABLE.includes("posStaff"));
+  test("every field, including POS Staff, Order Type and Is Shipping Charges, is on by default", () => {
+    assert.equal(ALL_AVAILABLE.length, 23);
+    for (const key of ["posStaff", "orderType", "isShippingCharges"]) assert.ok(ALL_AVAILABLE.includes(key), key);
+  });
+
+  test("a field marked unavailable is listed but not on by default", () => {
+    withStaffUnavailable(() => {
+      const staff = getSelectableFields(REPORT).find((f) => f.key === "posStaff");
+      assert.equal(staff.available, false);
+      assert.match(staff.unavailableReason, /Not available/);
+      assert.ok(!defaultFieldKeys(REPORT).includes("posStaff"));
+    });
   });
 
   test("omitting `fields` gives the defaults", () => {
@@ -144,10 +160,12 @@ describe("field selection (Report 1)", () => {
   });
 
   test("an unavailable field is quietly dropped, and a request with only that field is empty", () => {
-    const some = parseReportRequest(REPORT, { ...good, fields: ["orderName", "posStaff"] });
-    assert.deepEqual(some.value.fields, ["orderName"]);
-    assert.ok(some.value.ignored.includes("field:posStaff"));
-    assert.match(parseReportRequest(REPORT, { ...good, fields: ["posStaff"] }).errors.fields, /at least one field/);
+    withStaffUnavailable(() => {
+      const some = parseReportRequest(REPORT, { ...good, fields: ["orderName", "posStaff"] });
+      assert.deepEqual(some.value.fields, ["orderName"]);
+      assert.ok(some.value.ignored.includes("field:posStaff"));
+      assert.match(parseReportRequest(REPORT, { ...good, fields: ["posStaff"] }).errors.fields, /at least one field/);
+    });
   });
 
   test("duplicates collapse", () => {

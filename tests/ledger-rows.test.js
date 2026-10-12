@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { ledgerColumns, ledgerOrderRows, saleFigures, summarizeRows } from "../app/pipeline/ledger-rows.js";
+import { formatStoreDate, ledgerColumns, ledgerOrderRows, salesChannelName, saleFigures, summarizeRows } from "../app/pipeline/ledger-rows.js";
 
 const money = (amount) => ({ shopMoney: { amount: String(amount), currencyCode: "AED" } });
 const sale = (actionType, lineType, lineId, quantity, total, tax, discountBefore = 0) => ({
@@ -100,5 +100,24 @@ describe("ledgerOrderRows", () => {
     assert.equal(s.netSales, 110);
     assert.equal(s.totalSales, round(110 + 20.95 + 6.55 + 0));
     function round(v) { return Math.round(v * 100) / 100; }
+  });
+});
+
+describe("helpers", () => {
+  test("formatStoreDate converts to the store time zone and handles bad input", () => {
+    assert.equal(formatStoreDate("2026-08-01T20:30:00Z"), "2026-08-02 00:30:00");
+    assert.equal(formatStoreDate("2026-08-01T20:30:00Z", "UTC"), "2026-08-01 20:30:00");
+    assert.equal(formatStoreDate(undefined), null);
+    assert.equal(formatStoreDate("nonsense"), null);
+  });
+
+  test("midnight in the store belongs to the new day", () => {
+    assert.equal(formatStoreDate("2026-08-01T20:00:00Z"), "2026-08-02 00:00:00");
+  });
+
+  test("salesChannelName falls back to the raw source", () => {
+    assert.equal(salesChannelName("pos"), "Point of Sale");
+    assert.equal(salesChannelName("some-new-app"), "some-new-app");
+    assert.equal(salesChannelName(undefined), null);
   });
 });

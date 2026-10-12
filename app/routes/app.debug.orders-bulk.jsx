@@ -7,24 +7,14 @@ import { useFetcher, useLoaderData, useSearchParams } from "react-router";
 import { authenticate } from "../shopify.server";
 import { buildOrdersBulkQuery, buildOrdersSearchQuery, buildOrdersUpdatedSinceQuery } from "../pipeline/orders-bulk-query";
 import { buildAgreementsQuery } from "../pipeline/ledger-queries";
-import { downloadBulkFile, groupAgreementOrders, groupOrders, readJsonl } from "../pipeline/bulk-file";
-import { latestProductsFile, prototypeFilePath, prototypeReportPath } from "../pipeline/storage";
-import { buildLedgerRows, indexAgreements, ledgerColumns, summarizeRows } from "../pipeline/ledger-rows";
-import { fetchStaffByOrder } from "../pipeline/staff";
-import { loadProductIndex } from "../pipeline/join";
-import { loadMappings } from "../pipeline/location-mapping";
-import { endOfDayUtc, startOfDayUtc } from "../pipeline/dates";
-import { parseLocalDateTime, writeReportXlsx } from "../pipeline/report-xlsx";
-import { formatStoreDate } from "../pipeline/report-rows";
-import { STORE_TIME_ZONE } from "../config/store";
+import { downloadBulkFile } from "../pipeline/bulk-file";
+import { prototypeFilePath } from "../pipeline/storage";
 import { startBulkOperation } from "../pipeline/bulk";
 import db from "../db.server";
 import { startReportJob } from "../pipeline/start-job";
 import { handleBulkOperationsFinish } from "../pipeline/bulk-finish";
 import { advanceAndGenerate } from "../pipeline/job-runner";
 import { ensureDefaultMappings } from "../pipeline/location-mapping";
-import { previewJob } from "../pipeline/report-preview";
-import { getReportFields } from "../config";
 import { STAGES } from "../pipeline/job-stages";
 import { buildBulkOperationsFinishPayload } from "../testing/bulk-operations-finish";
 
@@ -696,7 +686,7 @@ export const loader = async ({ request }) => {
   const jobs = await db.reportJob.findMany({
     orderBy: { createdAt: "desc" },
     take: 5,
-    select: { id: true, stage: true, error: true, ordersBulkOpId: true, eventsBulkOpId: true, productsBulkOpId: true, ordersFile: true, eventsFile: true, productsFile: true, updatedAt: true },
+    select: { id: true, stage: true, error: true, ordersBulkOpId: true, eventsBulkOpId: true, productsBulkOpId: true, ordersFile: true, eventsFile: true, productsFile: true, resultFileUrl: true, updatedAt: true },
   });
 
   try {
@@ -731,19 +721,6 @@ export const action = async ({ request }) => {
   notFoundInProduction();
   const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
-
-  // Dev-only report preview: totals and a row sample for a finished job.
-  if (form.get("intent") === "preview") {
-    try {
-      const job = await db.reportJob.findUnique({ where: { id: form.get("previewJobId") } });
-      if (!job || job.shop !== session.shop) return { error: "Job not found" };
-      const started = Date.now();
-      const preview = await previewJob({ db, job, sampleSize: Number(form.get("sampleSize")) || 50 });
-      return { preview: { ...preview, jobId: job.id, seconds: (Date.now() - started) / 1000, params: job.params }, error: null };
-    } catch (error) {
-      return { preview: null, error: error.message };
-    }
-  }
 
   if (form.get("intent") === "seedMappings") {
     try {
@@ -800,53 +777,6 @@ export const action = async ({ request }) => {
       return { saved: { kind: form.get("kind"), path, bytes, empty, operation: operation.id, objectCount: operation.objectCount }, error: null };
     } catch (error) {
       return { saved: null, error: error.message };
-    }
-  }
-
-  // Builds the SAMPLE ledger report (storage/prototype/sample-general-sales.xlsx)
-  // from the two saved ledger exports, for the From..To store days. Prototype only.
-  if (form.get("intent") === "ledgerSample") {
-    try {
-      const from = String(form.get("start"));
-      const to = String(form.get("end"));
-      const productsFile = latestProductsFile();
-      if (!productsFile) return { error: "No products file found in storage/jobs (run a pipeline job once)." };
-      const productIndex = await loadProductIndex(productsFile);
-      const mappings = await loadMappings(db, session.shop);
-      const staffByOrder = await fetchStaffByOrder(admin, from, to);
-      const agreementsByOrder = await indexAgreements(groupAgreementOrders(readJsonl(prototypeFilePath("ledgerAgreements"))));
-      const columns = ledgerColumns();
-      const rows = await buildLedgerRows(groupOrders(readJsonl(prototypeFilePath("ledgerOrders"))), agreementsByOrder, {
-        columns,
-        productIndex,
-        mappings,
-        staffByOrder,
-        startMs: startOfDayUtc(from, STORE_TIME_ZONE).getTime(),
-        endMs: endOfDayUtc(to, STORE_TIME_ZONE).getTime() + 999,
-      });
-      const filePath = prototypeReportPath("sample-general-sales");
-      const written = await writeReportXlsx({
-        filePath,
-        sheetName: "General Sales Report",
-        columns,
-        rows: rows.map((row) => row.values),
-        request: {
-          reportLabel: "General Sales Report (SAMPLE)",
-          generatedAt: parseLocalDateTime(formatStoreDate(new Date())),
-          range: { from, to, timeZone: STORE_TIME_ZONE },
-          filters: [],
-          notes: [
-            "Rows are dated on the day the event happened: returns and exchanges count on the day they were processed, not on the original order date.",
-            "Order Type: Order = items sold (including exchange replacements) and shipping; Reversal = items returned, with negative quantity and amounts.",
-            "Return Reason appears on Reversal rows only. Shipping rows have Is Shipping Charges = Yes.",
-            "Orders with a shipping discount (for example Free Shipping) have a shipping row at 0.00 naming the discount.",
-            "Credit Shopify keeps on exchanges (about 0.03% of sales) is not included, so totals can differ from the Dashboard by that amount.",
-          ],
-        },
-      });
-      return { ledgerSample: { path: filePath, ...written, staffOrders: staffByOrder.size, rowsWithStaff: rows.filter((row) => row.values.posStaff).length, totals: summarizeRows(rows) }, error: null };
-    } catch (error) {
-      return { ledgerSample: null, error: error.stack ?? error.message };
     }
   }
 
@@ -958,51 +888,6 @@ export const action = async ({ request }) => {
   }
 };
 
-const reportFields = getReportFields("generalSales");
-const fmt = (n) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const TOTAL_COLUMNS = [
-  ["orders", "Orders"],
-  ["itemsSold", "Items"],
-  ["gross", "Gross"],
-  ["discounts", "Discount"],
-  ["returns", "Returns"],
-  ["net", "Net"],
-  ["shipping", "Ship ex VAT"],
-  ["taxes", "Tax"],
-  ["total", "Total"],
-];
-
-// Temporary debug component; prop types are not worth declaring.
-/* eslint-disable react/prop-types */
-function TotalsTable({ rows, keyLabel }) {
-  return (
-    <table style={{ borderCollapse: "collapse", marginBottom: 16 }}>
-      <thead>
-        <tr>
-          <th style={{ textAlign: "left", padding: "2px 10px" }}>{keyLabel}</th>
-          {TOTAL_COLUMNS.map(([key, label]) => (
-            <th key={key} style={{ textAlign: "right", padding: "2px 10px" }}>
-              {label}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => (
-          <tr key={row.key}>
-            <td style={{ padding: "2px 10px" }}>{row.key}</td>
-            {TOTAL_COLUMNS.map(([key]) => (
-              <td key={key} style={{ textAlign: "right", padding: "2px 10px" }}>
-                {key === "orders" || key === "itemsSold" ? row[key].toLocaleString("en-US") : fmt(row[key])}
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
 /* eslint-enable react/prop-types */
 
 const day = (offset) => new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10);
@@ -1055,9 +940,6 @@ export default function DebugBulk() {
           <button type="submit" name="intent" value="saveFile" disabled={busy}>
             Save latest export to disk (as selected type)
           </button>{" "}
-          <button type="submit" name="intent" value="ledgerSample" disabled={busy}>
-            Build SAMPLE ledger report (From..To)
-          </button>{" "}
           <button type="submit" name="intent" value="shopifyqlStaff" disabled={busy}>
             Test ShopifyQL staff query (From date)
           </button>{" "}
@@ -1070,7 +952,6 @@ export default function DebugBulk() {
           </button>
         </fetcher.Form>
         {result?.saved && <pre>{JSON.stringify(result.saved, null, 2)}</pre>}
-        {result?.ledgerSample && <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(result.ledgerSample, null, 2)}</pre>}
         {result?.staffPerOrder && <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(result.staffPerOrder, null, 2)}</pre>}
         {result?.shopifyql && <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(result.shopifyql, null, 2)}</pre>}
         {result?.inspected && <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(result.inspected, null, 2)}</pre>}
@@ -1106,69 +987,6 @@ export default function DebugBulk() {
         </p>
       </s-section>
 
-      <s-section heading="Report preview (testing only: totals and sample rows for a finished job)">
-        <fetcher.Form method="post">
-          <select name="previewJobId" defaultValue={jobs.find((j) => ["DATA_READY", "READY"].includes(j.stage))?.id}>
-            {jobs.filter((j) => ["DATA_READY", "READY"].includes(j.stage)).map((j) => (
-              <option key={j.id} value={j.id}>
-                {j.id} ({new Date(j.updatedAt).toLocaleString()})
-              </option>
-            ))}
-          </select>{" "}
-          <label>
-            sample rows <input type="number" name="sampleSize" defaultValue={50} min={0} max={500} style={{ width: 70 }} />
-          </label>{" "}
-          <button type="submit" name="intent" value="preview" disabled={busy || !jobs.some((j) => ["DATA_READY", "READY"].includes(j.stage))}>
-            Preview report
-          </button>
-          {busy && " working..."}
-        </fetcher.Form>
-        {result?.preview && (
-          <div>
-            <p>
-              Job {result.preview.jobId} computed in {result.preview.seconds.toFixed(1)}s. Dates are in {result.preview.timeZone}. Request: <code>{result.preview.params}</code>
-            </p>
-            <h4>Overall</h4>
-            <TotalsTable rows={[{ key: "ALL", ...result.preview.totals }]} keyLabel="" />
-            <h4>By month</h4>
-            <TotalsTable rows={result.preview.byMonth} keyLabel="Month" />
-            <h4>By day</h4>
-            <TotalsTable rows={result.preview.byDay} keyLabel="Day" />
-            <h4>By location</h4>
-            <TotalsTable rows={result.preview.byLocation} keyLabel="Location" />
-            <h4>By sales channel</h4>
-            <TotalsTable rows={result.preview.byChannel} keyLabel="Channel" />
-            <h4>By collection (rows, not orders)</h4>
-            <TotalsTable rows={result.preview.byCollection} keyLabel="Collection" />
-            <h4>First {result.preview.sample.length} rows</h4>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ borderCollapse: "collapse", fontSize: 12 }}>
-                <thead>
-                  <tr>
-                    {reportFields.map((field) => (
-                      <th key={field.key} style={{ textAlign: "left", padding: "2px 8px", whiteSpace: "nowrap" }}>
-                        {field.label}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {result.preview.sample.map((values, index) => (
-                    <tr key={index}>
-                      {reportFields.map((field) => (
-                        <td key={field.key} style={{ padding: "2px 8px", whiteSpace: "nowrap" }}>
-                          {values[field.key] === null || values[field.key] === undefined ? "" : typeof values[field.key] === "number" ? values[field.key] : String(values[field.key])}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </s-section>
-
       <s-section heading="Location mappings (channel to location)">
         {locationMappings.length === 0 ? <p>None yet. Click &quot;Seed location mappings&quot;.</p> : <pre>{JSON.stringify(locationMappings, null, 2)}</pre>}
       </s-section>
@@ -1179,7 +997,7 @@ export default function DebugBulk() {
           <fetcher.Form method="post" key={job.id} style={{ marginBottom: 12 }}>
             <input type="hidden" name="jobId" value={job.id} />
             <pre style={{ whiteSpace: "pre-wrap" }}>
-              {JSON.stringify({ id: job.id, stage: job.stage, error: job.error, ordersFile: job.ordersFile, productsFile: job.productsFile, updatedAt: job.updatedAt }, null, 2)}
+              {JSON.stringify({ id: job.id, stage: job.stage, error: job.error, ordersFile: job.ordersFile, eventsFile: job.eventsFile, productsFile: job.productsFile, resultFile: job.resultFileUrl, updatedAt: job.updatedAt }, null, 2)}
             </pre>
             {(job.stage === "ORDERS_RUNNING" || job.stage === "EVENTS_RUNNING" || job.stage === "PRODUCTS_RUNNING") && (
               <button type="submit" name="intent" value="simulateFinish" disabled={busy}>

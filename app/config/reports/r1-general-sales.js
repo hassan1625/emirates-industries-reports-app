@@ -1,6 +1,6 @@
 // Report 1 — General Sales Report (Dev Plan §4b). Phase 1.
 // `ref` entries point at app/config/schema.js; all other entries are defined
-// here. `calculation` names are implemented in Milestone 3 (Step 21).
+// here. Rows are built from dated sales events (see app/pipeline/ledger-rows.js).
 import { DATE_RANGE_MODES } from "../schema.js";
 
 export const generalSalesReport = {
@@ -18,12 +18,14 @@ export const generalSalesReport = {
 
   fields: [
     { key: "orderName", label: "Order Name", type: "string", width: 12, source: { operation: "orders", path: "name" } },
-    { key: "orderDate", label: "Order Date", type: "date", source: { operation: "orders", path: "createdAt" } },
+    // The day the event happened: the order itself, or a return/exchange on its own day.
+    { key: "orderDate", label: "Order Date", type: "date", source: { operation: "events", path: "agreements.happenedAt" } },
+    // "Order" (items sold, exchange replacements, shipping) or "Reversal" (items returned, negative values).
+    { key: "orderType", label: "Order Type", type: "string", width: 12, source: { operation: "events", path: "agreements.sales.actionType" } },
     { key: "salesChannel", label: "Sales Channel", type: "string", width: 16, source: { operation: "orders", path: "sourceName" } },
     { key: "posLocation", ref: "locationName", label: "POS Location", width: 36 },
-    // Unavailable: Shopify only grants the staff scope (read_users) to Plus/Advanced stores
-    // and the client is on Grow. The column stays, empty, until the client decides.
-    { key: "posStaff", label: "POS Staff", type: "string", available: false, unavailableReason: "Shopify only shares staff names with Plus and Advanced plans.", source: { operation: "orders", path: "staffMember.name" } },
+    // Order.staffMember needs read_users (Plus/Advanced only), so staff names come from ShopifyQL.
+    { key: "posStaff", label: "POS Staff", type: "string", width: 22, source: { operation: "shopifyql", path: "staff_member_name" } },
     { key: "collectionName", ref: "collectionName", width: 28 },
     { key: "productTitle", ref: "productTitle", width: 44 },
     { key: "sku", ref: "sku", label: "Product Variant SKU", width: 22 },
@@ -37,6 +39,8 @@ export const generalSalesReport = {
     { key: "netSales", label: "Net Sales", type: "currency", calculation: "netSales" },
     // Order-level: shown once per order, not per line item.
     { key: "shippingCharges", label: "Shipping Charges (excl. VAT)", type: "currency", calculation: "shippingExclVat", perOrder: true },
+    // "Yes" on the shipping row only.
+    { key: "isShippingCharges", label: "Is Shipping Charges", type: "string", width: 20, perOrder: true },
     { key: "paymentMethod", label: "Payment Method", type: "string", width: 20, source: { operation: "orders", path: "paymentGatewayNames" }, perOrder: true },
     { key: "taxes", label: "Taxes", type: "currency", source: { operation: "orders", path: "lineItems.taxLines" } },
     { key: "returnReason", label: "Return Reason", type: "string", width: 22, source: { operation: "returns", path: "returnLineItems.returnReason" } },
@@ -47,7 +51,7 @@ export const generalSalesReport = {
     { key: "dateRange", ref: "dateRange", mode: DATE_RANGE_MODES.SINGLE, required: true },
     { key: "salesChannel", label: "Sales Channel", type: "multiSelect", matchOn: "sourceName", source: { operation: "orders", path: "sourceName" } },
     { key: "posLocation", ref: "locationName", label: "POS Location", type: "multiSelect", matchOn: "locationId" },
-    { key: "posStaff", label: "POS Staff", type: "multiSelect", available: false, unavailableReason: "Shopify only shares staff names with Plus and Advanced plans.", source: { operation: "orders", path: "staffMember.name" } },
+    { key: "posStaff", label: "POS Staff", type: "multiSelect", matchOn: "posStaff", source: { operation: "shopifyql", path: "staff_member_name" } },
     // Shipping rows have no collection, so a collection filter leaves them out.
     { key: "collection", ref: "collectionName", type: "multiSelect", matchOn: "collectionName" },
   ],

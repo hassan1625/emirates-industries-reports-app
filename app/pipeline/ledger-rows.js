@@ -14,8 +14,9 @@
 // On a reversal every figure is the mirror image (negative Net/Gross/Taxes/
 // Total, positive Discounts).
 //
-// This is the prototype of the rebuilt Report 1 (sample for client approval).
-// The columns are the Report 1 config plus Order Type and Is Shipping Charges.
+// Retained exchange credit ("adjustment" sales, about 0.03% of sales) is left
+// out on purpose, as the client asked; it belongs to the Refund Credit Report.
+// Column keys come from the Report 1 config; this file never lists them twice.
 import { getReportFields } from "../config/index.js";
 import { SALES_CHANNEL_NAMES, STORE_TIME_ZONE } from "../config/store.js";
 import { round2 } from "../calculations/money.js";
@@ -23,25 +24,31 @@ import { unitPriceBeforeVat } from "../calculations/sales.js";
 import { buildDiscountIndex, discountCodeOrReason, discountLabel } from "./discounts.js";
 import { lookupCollection } from "./join.js";
 import { resolveOrderLocation } from "./location-mapping.js";
-import { formatStoreDate, salesChannelName } from "./report-rows.js";
 
 const REPORT = "generalSales";
 export const ORDER_TYPES = Object.freeze({ order: "Order", reversal: "Reversal" });
 
+// "2026-08-02 00:30:00" in the given time zone (24-hour clock).
+export function formatStoreDate(iso, timeZone = STORE_TIME_ZONE) {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" })
+      .formatToParts(date)
+      .map((part) => [part.type, part.value]),
+  );
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`;
+}
+
+export const salesChannelName = (sourceName, names = SALES_CHANNEL_NAMES) => names[sourceName] ?? sourceName ?? null;
+
 const amount = (set) => Number(set?.shopMoney?.amount ?? 0);
 const clean = (value) => (value === 0 ? 0 : value); // no -0 in sheets
 
-// The sheet's columns: the config's fields (POS Staff switched on) with the two
-// new columns placed next to the ones they belong with.
+// Every Report 1 column, in config order (the request narrows these later).
 export function ledgerColumns() {
-  const columns = [];
-  for (const field of getReportFields(REPORT)) {
-    const { key, label, type, width } = field;
-    columns.push({ key, label, type, width });
-    if (key === "orderDate") columns.push({ key: "orderType", label: "Order Type", type: "string", width: 12 });
-    if (key === "shippingCharges") columns.push({ key: "isShippingCharges", label: "Is Shipping Charges", type: "string", width: 20 });
-  }
-  return columns;
+  return getReportFields(REPORT).map(({ key, label, type, width }) => ({ key, label, type, width }));
 }
 
 const emptyValues = (columns) => Object.fromEntries(columns.map((column) => [column.key, null]));
@@ -92,13 +99,13 @@ export function saleFigures({ total, tax, discountBefore }) {
 
 // Rows of one order for the events inside [startMs, endMs].
 // `order` comes from groupOrders(); `agreements` from groupAgreementOrders().
-export function ledgerOrderRows(order, agreements, { columns, productIndex, mappings, staffByOrder, startMs, endMs, timeZone = STORE_TIME_ZONE, channelNames = SALES_CHANNEL_NAMES, discountOptions }) {
+export function ledgerOrderRows(order, agreements, { columns, productIndex, mappings, staffByOrder, startMs, endMs, keep = () => true, timeZone = STORE_TIME_ZONE, channelNames = SALES_CHANNEL_NAMES, discountOptions }) {
   const location = resolveOrderLocation(order, mappings);
   const discountIndex = buildDiscountIndex(order);
   const linesById = new Map(order.lineItems.map((line) => [line.id, line]));
   const staff = staffByOrder?.get(order.name) ?? null;
   const paymentMethod = (order.paymentGatewayNames ?? []).join(", ") || null;
-  const baseMeta = { orderId: order.id, sourceName: order.sourceName ?? null, locationId: location.locationId, locationVia: location.via };
+  const baseMeta = { orderId: order.id, sourceName: order.sourceName ?? null, locationId: location.locationId, locationVia: location.via, posStaff: staff };
 
   const events = (agreements ?? [])
     .filter((agreement) => {
@@ -172,9 +179,11 @@ export function ledgerOrderRows(order, agreements, { columns, productIndex, mapp
     }
   }
 
-  // Payment Method sits once per order, on its first row in the report.
-  if (rows.length) rows[0].values.paymentMethod = paymentMethod;
-  return rows;
+  // Payment Method sits once per order, on its first row in the report (after
+  // the request's filters, so a filtered-out row never takes it along).
+  const kept = rows.filter(keep);
+  if (kept.length) kept[0].values.paymentMethod = paymentMethod;
+  return kept;
 }
 
 // Builds every row for a period. `orders` is an async iterable from
