@@ -38,21 +38,21 @@ export async function fetchBulkOperation(admin, id) {
 //
 // Resolves to { handled: false, reason } when the operation is not one of our
 // jobs, otherwise { handled: true, job, which, operation }, where `which` says
-// whether it was the orders or the products export. Throws on a failed lookup
+// whether it was the orders, events or products export. Throws on a failed lookup
 // so the route answers 5xx and Shopify retries the delivery.
 export async function handleBulkOperationsFinish({ shop, payload, admin, db, onFinished }) {
   const id = payload?.admin_graphql_api_id;
   if (!id) return { handled: false, reason: "missing-operation-id" };
 
   const job = await db.reportJob.findFirst({
-    where: { shop, OR: [{ ordersBulkOpId: id }, { productsBulkOpId: id }] },
+    where: { shop, OR: [{ ordersBulkOpId: id }, { eventsBulkOpId: id }, { productsBulkOpId: id }] },
   });
   if (!job) return { handled: false, reason: "unknown-operation", id };
 
   const operation = await fetchBulkOperation(admin, id);
   if (!operation) throw new Error(`Shopify returned no BulkOperation for ${id}`);
 
-  const result = { handled: true, job, which: job.ordersBulkOpId === id ? "orders" : "products", operation };
+  const result = { handled: true, job, which: job.ordersBulkOpId === id ? "orders" : job.eventsBulkOpId === id ? "events" : "products", operation };
   if (onFinished) await onFinished(result);
   return result;
 }

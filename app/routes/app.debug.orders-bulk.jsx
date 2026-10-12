@@ -696,7 +696,7 @@ export const loader = async ({ request }) => {
   const jobs = await db.reportJob.findMany({
     orderBy: { createdAt: "desc" },
     take: 5,
-    select: { id: true, stage: true, error: true, ordersBulkOpId: true, productsBulkOpId: true, ordersFile: true, productsFile: true, updatedAt: true },
+    select: { id: true, stage: true, error: true, ordersBulkOpId: true, eventsBulkOpId: true, productsBulkOpId: true, ordersFile: true, eventsFile: true, productsFile: true, updatedAt: true },
   });
 
   try {
@@ -768,7 +768,7 @@ export const action = async ({ request }) => {
   if (form.get("intent") === "simulateFinish") {
     try {
       const job = await db.reportJob.findUnique({ where: { id: form.get("jobId") } });
-      const operationId = job?.stage === STAGES.ORDERS_RUNNING ? job.ordersBulkOpId : job?.stage === STAGES.PRODUCTS_RUNNING ? job.productsBulkOpId : null;
+      const operationId = job?.stage === STAGES.ORDERS_RUNNING ? job.ordersBulkOpId : job?.stage === STAGES.EVENTS_RUNNING ? job.eventsBulkOpId : job?.stage === STAGES.PRODUCTS_RUNNING ? job.productsBulkOpId : null;
       if (!operationId) return { error: `Job is ${job?.stage ?? "missing"}; nothing is running to finish.` };
 
       const result = await handleBulkOperationsFinish({
@@ -839,7 +839,8 @@ export const action = async ({ request }) => {
             "Rows are dated on the day the event happened: returns and exchanges count on the day they were processed, not on the original order date.",
             "Order Type: Order = items sold (including exchange replacements) and shipping; Reversal = items returned, with negative quantity and amounts.",
             "Return Reason appears on Reversal rows only. Shipping rows have Is Shipping Charges = Yes.",
-            "Exchange adjustment rows are credit Shopify keeps when a returned item was worth more than its replacement.",
+            "Orders with a shipping discount (for example Free Shipping) have a shipping row at 0.00 naming the discount.",
+            "Credit Shopify keeps on exchanges (about 0.03% of sales) is not included, so totals can differ from the Dashboard by that amount.",
           ],
         },
       });
@@ -1180,7 +1181,7 @@ export default function DebugBulk() {
             <pre style={{ whiteSpace: "pre-wrap" }}>
               {JSON.stringify({ id: job.id, stage: job.stage, error: job.error, ordersFile: job.ordersFile, productsFile: job.productsFile, updatedAt: job.updatedAt }, null, 2)}
             </pre>
-            {(job.stage === "ORDERS_RUNNING" || job.stage === "PRODUCTS_RUNNING") && (
+            {(job.stage === "ORDERS_RUNNING" || job.stage === "EVENTS_RUNNING" || job.stage === "PRODUCTS_RUNNING") && (
               <button type="submit" name="intent" value="simulateFinish" disabled={busy}>
                 Simulate finish webhook for this job
               </button>

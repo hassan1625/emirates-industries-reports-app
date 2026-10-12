@@ -112,3 +112,14 @@ test("the agreements query uses 3 connections and selects dated sales events", (
   assert.match(query, /updated_at:>=2026-09-01T00:00:00Z/);
   assert.ok(!query.includes("staffMember") && !query.includes("user"));
 });
+
+test("a cutoff bounds both exports of a job to the same set of orders", () => {
+  const window = { start: "2026-08-01T00:00:00Z", cutoff: "2026-10-12T10:00:00.123Z" };
+  const orders = buildOrdersUpdatedSinceQuery(window);
+  const events = buildAgreementsQuery(window);
+  for (const query of [orders, events]) assert.match(query, /updated_at:>=2026-08-01T00:00:00Z updated_at:<=2026-10-12T10:00:00Z/);
+});
+
+test("a cutoff before the start is refused", () => {
+  assert.throws(() => buildOrdersUpdatedSinceQuery({ start: "2026-09-01T00:00:00Z", cutoff: "2026-08-01T00:00:00Z" }), /start must not be after/);
+});

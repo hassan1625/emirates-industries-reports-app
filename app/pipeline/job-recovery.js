@@ -4,11 +4,11 @@
 // (advanceJob) the webhook uses. All state moves are atomic claims on `stage`
 // (plus `updatedAt` where a stage has no other guard), so a recovery pass can
 // never double-run a step that a webhook, or another pass, already took.
-import { DOWNLOADING_STAGE, RUNNING_STAGE, STAGES } from "./job-stages.js";
+import { BULK_ID_COLUMN, DOWNLOADING_STAGE, EXPORT_LABEL, NEXT_EXPORT, RUNNING_STAGE, STAGES, exportOfStage } from "./job-stages.js";
 import { fetchBulkOperation } from "./bulk-finish.js";
+import { startNextExport } from "./job-chain.js";
 import { advanceAndGenerate } from "./job-runner.js";
 import { GENERATED_REPORT_TYPES, generateReport } from "./report-generation.js";
-import { startProductsBulkOperation } from "./products-bulk-query.js";
 
 const MINUTE = 60 * 1000;
 
@@ -20,10 +20,10 @@ export const RECOVERY_CONFIG = Object.freeze({
   maxRunningMs: 3 * 60 * MINUTE,
   // A download that has not progressed in this long is assumed dead.
   downloadStaleAfterMs: 15 * MINUTE,
-  // Retry a refused/never-started products export after this long...
-  productsRetryAfterMs: 1 * MINUTE,
+  // Retry a refused/never-started next export (events or products) after this long...
+  nextExportRetryAfterMs: 1 * MINUTE,
   // ...and stop trying once the job is this old.
-  productsRetryUntilMs: 30 * MINUTE,
+  nextExportRetryUntilMs: 30 * MINUTE,
   // Created but its orders export never started.
   pendingStaleAfterMs: 10 * MINUTE,
   // Data is in but the report file was not started (a crash between the two).
@@ -37,13 +37,14 @@ const UNFINISHED = [
   STAGES.ORDERS_RUNNING,
   STAGES.ORDERS_DOWNLOADING,
   STAGES.ORDERS_READY,
+  STAGES.EVENTS_RUNNING,
+  STAGES.EVENTS_DOWNLOADING,
+  STAGES.EVENTS_READY,
   STAGES.PRODUCTS_RUNNING,
   STAGES.PRODUCTS_DOWNLOADING,
   STAGES.DATA_READY,
   STAGES.GENERATING,
 ];
-
-const whichOf = (stage) => (stage.startsWith("ORDERS") ? "orders" : "products");
 
 // Moves `job` from its current stage, only if nobody has touched it since we
 // read it. True when this caller won.
@@ -58,7 +59,6 @@ const fail = async (db, job, error) => ((await claim(db, job, { stage: STAGES.FA
 // Returns [{ jobId, stage, action }] for every job it looked at.
 export async function recoverStuckJobs({ db, getAdmin, now = new Date(), config = {}, deps = {} }) {
   const cfg = { ...RECOVERY_CONFIG, ...config };
-  const startProducts = deps.startProducts ?? startProductsBulkOperation;
   const lookup = deps.fetchBulkOperation ?? fetchBulkOperation;
   const advance = deps.advanceJob ?? advanceAndGenerate;
   const generate = deps.generateReport ?? generateReport;
@@ -102,40 +102,38 @@ export async function recoverStuckJobs({ db, getAdmin, now = new Date(), config 
         continue;
       }
 
-      if (job.stage === STAGES.ORDERS_READY) {
-        if (age < cfg.productsRetryAfterMs) {
+      // An export's file is on disk but the next export never started (Shopify
+      // was busy, or the process died in between): start it.
+      if (job.stage === STAGES.ORDERS_READY || job.stage === STAGES.EVENTS_READY) {
+        const which = exportOfStage(job.stage);
+        if (age < cfg.nextExportRetryAfterMs) {
           record("waiting");
           continue;
         }
-        if (sinceCreated > cfg.productsRetryUntilMs) {
-          record(await fail(db, job, `Products export could not be started: ${job.error ?? "unknown error"}`));
+        if (sinceCreated > cfg.nextExportRetryUntilMs) {
+          record(await fail(db, job, `The ${EXPORT_LABEL[NEXT_EXPORT[which]]} export could not be started: ${job.error ?? "unknown error"}`));
           continue;
         }
         // Take the retry by bumping updatedAt, so a second pass backs off.
-        if (!(await claim(db, job, { error: "Retrying products export" }))) {
+        if (!(await claim(db, job, { error: `Retrying the ${EXPORT_LABEL[NEXT_EXPORT[which]]} export` }))) {
           record("skipped");
           continue;
         }
         const admin = await getAdmin(job.shop);
-        try {
-          const operation = await startProducts(admin);
-          await db.reportJob.update({ where: { id: job.id }, data: { stage: STAGES.PRODUCTS_RUNNING, productsBulkOpId: operation.id, error: null } });
-          record("products-started");
-        } catch (error) {
-          await db.reportJob.update({ where: { id: job.id }, data: { error: `Products export not started: ${error.message}` } });
-          record("products-start-failed");
-        }
+        const outcome = await startNextExport({ db, admin, job, which, deps: { start: deps.start } });
+        record(outcome.started ? `${outcome.next}-started` : `${outcome.next}-start-failed`);
         continue;
       }
 
       // A download that stopped making progress: send the job back to its
       // "running" stage and handle it below like any other waiting job.
-      if (job.stage === DOWNLOADING_STAGE.orders || job.stage === DOWNLOADING_STAGE.products) {
+      const current = exportOfStage(job.stage);
+      if (job.stage === DOWNLOADING_STAGE[current]) {
         if (age < cfg.downloadStaleAfterMs) {
           record("waiting");
           continue;
         }
-        const running = RUNNING_STAGE[whichOf(job.stage)];
+        const running = RUNNING_STAGE[current];
         if (!(await claim(db, job, { stage: running, error: null }))) {
           record("skipped");
           continue;
@@ -149,21 +147,21 @@ export async function recoverStuckJobs({ db, getAdmin, now = new Date(), config 
       }
 
       // Waiting on a Shopify export: ask Shopify what happened to it.
-      const which = whichOf(job.stage);
-      const operationId = which === "orders" ? job.ordersBulkOpId : job.productsBulkOpId;
+      const which = current;
+      const operationId = job[BULK_ID_COLUMN[which]];
       if (!operationId) {
-        record(await fail(db, job, `No ${which} export id recorded`));
+        record(await fail(db, job, `No ${EXPORT_LABEL[which]} export id recorded`));
         continue;
       }
 
       const admin = await getAdmin(job.shop);
       const operation = await lookup(admin, operationId);
       if (!operation) {
-        record(await fail(db, job, `Shopify does not know the ${which} export ${operationId}`));
+        record(await fail(db, job, `Shopify does not know the ${EXPORT_LABEL[which]} export ${operationId}`));
         continue;
       }
       if (operation.status === "CREATED" || operation.status === "RUNNING") {
-        record(sinceCreated > cfg.maxRunningMs ? await fail(db, job, `${which} export still running after ${Math.round(sinceCreated / MINUTE)} minutes`) : "still-running");
+        record(sinceCreated > cfg.maxRunningMs ? await fail(db, job, `${EXPORT_LABEL[which]} export still running after ${Math.round(sinceCreated / MINUTE)} minutes`) : "still-running");
         continue;
       }
 

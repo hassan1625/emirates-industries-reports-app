@@ -10,7 +10,7 @@ const ROOT = () => process.env.REPORT_STORAGE_DIR ?? join(process.cwd(), "storag
 // e.g. <root>/jobs/<jobId>/orders.jsonl
 export function jobFilePath(jobId, which) {
   if (!/^[\w-]+$/.test(jobId)) throw new Error(`Unsafe job id: ${jobId}`);
-  if (!["orders", "products"].includes(which)) throw new Error(`Unknown export: ${which}`);
+  if (!["orders", "events", "products"].includes(which)) throw new Error(`Unknown export: ${which}`);
   return join(ROOT(), "jobs", jobId, `${which}.jsonl`);
 }
 

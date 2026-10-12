@@ -151,6 +151,16 @@ export async function verifyOrdersFile(filePath) {
   return stats;
 }
 
+export async function verifyEventsFile(filePath) {
+  const stats = { orders: 0, events: 0, sales: 0 };
+  for await (const order of groupAgreementOrders(readJsonl(filePath))) {
+    stats.orders += 1;
+    stats.events += order.agreements.length;
+    for (const agreement of order.agreements) stats.sales += agreement.sales.length;
+  }
+  return stats;
+}
+
 export async function verifyProductsFile(filePath) {
   const stats = { products: 0, variants: 0, collections: 0 };
   for await (const product of groupProducts(readJsonl(filePath))) {

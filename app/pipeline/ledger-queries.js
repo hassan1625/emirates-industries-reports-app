@@ -10,13 +10,13 @@
 // export, joined on order and line item id: together they would exceed the
 // connection limit in one query.
 import { startBulkOperation } from "./bulk.js";
+import { updatedWindowFilter } from "./orders-bulk-query.js";
 
-const toIso = (value) => new Date(value).toISOString().replace(/\.\d{3}Z$/, "Z");
 const MONEY = "shopMoney { amount currencyCode }";
 
-export function buildAgreementsQuery({ start }) {
+export function buildAgreementsQuery(window) {
   return `{
-  orders(query: ${JSON.stringify(`updated_at:>=${toIso(start)}`)}, sortKey: UPDATED_AT) {
+  orders(query: ${JSON.stringify(updatedWindowFilter(window))}, sortKey: UPDATED_AT) {
     edges {
       node {
         id
@@ -57,6 +57,6 @@ export function buildAgreementsQuery({ start }) {
 }`;
 }
 
-export function startAgreementsBulkOperation(admin, range) {
-  return startBulkOperation(admin, buildAgreementsQuery(range), "agreements bulk query");
+export function startAgreementsBulkOperation(admin, window) {
+  return startBulkOperation(admin, buildAgreementsQuery(window), "agreements bulk query");
 }

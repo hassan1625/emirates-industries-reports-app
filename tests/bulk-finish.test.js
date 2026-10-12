@@ -55,6 +55,17 @@ describe("handleBulkOperationsFinish", () => {
     assert.equal(result.which, "products");
   });
 
+  test("events export is recognised too", async () => {
+    const EVENTS_ID = "gid://shopify/BulkOperation/777";
+    const result = await handleBulkOperationsFinish({
+      shop: SHOP,
+      payload: buildBulkOperationsFinishPayload({ id: EVENTS_ID }),
+      admin: fakeAdmin(buildBulkOperationNode({ id: EVENTS_ID })),
+      db: fakeDb([{ ...job, eventsBulkOpId: EVENTS_ID }]),
+    });
+    assert.equal(result.which, "events");
+  });
+
   test("failed operation is reported with its error code and no download URL", async () => {
     const node = buildBulkOperationNode({ id: ORDERS_ID, status: "FAILED", errorCode: "TIMEOUT" });
     const result = await handleBulkOperationsFinish({

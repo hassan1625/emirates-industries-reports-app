@@ -20,14 +20,13 @@ import { getReportFields } from "../config/index.js";
 import { SALES_CHANNEL_NAMES, STORE_TIME_ZONE } from "../config/store.js";
 import { round2 } from "../calculations/money.js";
 import { unitPriceBeforeVat } from "../calculations/sales.js";
-import { buildDiscountIndex, discountCodeOrReason } from "./discounts.js";
+import { buildDiscountIndex, discountCodeOrReason, discountLabel } from "./discounts.js";
 import { lookupCollection } from "./join.js";
 import { resolveOrderLocation } from "./location-mapping.js";
 import { formatStoreDate, salesChannelName } from "./report-rows.js";
 
 const REPORT = "generalSales";
 export const ORDER_TYPES = Object.freeze({ order: "Order", reversal: "Reversal" });
-export const ADJUSTMENT_TITLE = "Exchange adjustment (credit kept)";
 
 const amount = (set) => Number(set?.shopMoney?.amount ?? 0);
 const clean = (value) => (value === 0 ? 0 : value); // no -0 in sheets
@@ -78,6 +77,12 @@ function reasonFor(order, returnId, lineId) {
   return reasons.length ? reasons.join("; ") : null;
 }
 
+// Names of the discounts that apply to the order's shipping ("Free Shipping").
+export function shippingDiscountLabel(order, options) {
+  const labels = (order.discountApplications ?? []).filter((application) => application.targetType === "SHIPPING_LINE").map((application) => discountLabel(application, options)).filter(Boolean);
+  return labels.length ? [...new Set(labels)].join("; ") : null;
+}
+
 // Money columns of one sale. `net` and the rest keep the sale's own sign.
 export function saleFigures({ total, tax, discountBefore }) {
   const net = round2(total - tax);
@@ -116,41 +121,39 @@ export function ledgerOrderRows(order, agreements, { columns, productIndex, mapp
     const others = sales.filter((sale) => sale.lineType !== "SHIPPING");
 
     for (const sale of others) {
+      if (sale.lineType !== "PRODUCT") continue; // retained exchange credit: left out, as the client asked
       const values = emptyValues(columns);
       const type = sale.actionType === "ORDER" ? ORDER_TYPES.order : ORDER_TYPES.reversal;
       const figures = saleFigures(sale);
-      if (sale.lineType === "PRODUCT") {
-        const line = linesById.get(sale.lineId);
-        const collectionName = line ? lookupCollection(line, productIndex).collectionName : null;
-        const price = amount(line?.originalUnitPriceSet);
-        Object.assign(values, common, {
-          orderType: type,
-          collectionName,
-          productTitle: line?.title ?? "(item no longer on the order)",
-          sku: line?.sku ?? null,
-          barcode: line?.variant?.barcode ?? null,
-          variantPrice: line ? price : null,
-          unitPriceBeforeVat: line ? unitPriceBeforeVat(price) : null,
-          netItemsSold: sale.quantity,
-          grossSales: figures.grossSales,
-          discounts: figures.discounts,
-          discountCodeReason: line && figures.discounts !== 0 ? discountCodeOrReason(line, discountIndex, discountOptions) : null,
-          netSales: figures.net,
-          taxes: figures.taxes,
-          returnReason: type === ORDER_TYPES.reversal ? reasonFor(order, agreement.return?.id, sale.lineId) : null,
-          totalSales: figures.total,
-        });
-        rows.push({ values, meta: { ...baseMeta, kind: "line", actionType: sale.actionType, happenedAt: agreement.happenedAt, lineItemId: sale.lineId, productId: line?.product?.id ?? null, collectionName } });
-      } else {
-        // A retained exchange credit: money Shopify keeps that sits on no item.
-        Object.assign(values, common, { orderType: type, productTitle: ADJUSTMENT_TITLE, netItemsSold: 0, grossSales: figures.net, discounts: 0, netSales: figures.net, taxes: figures.taxes, totalSales: figures.total });
-        rows.push({ values, meta: { ...baseMeta, kind: "adjustment", actionType: sale.actionType, happenedAt: agreement.happenedAt, lineItemId: null, productId: null, collectionName: null } });
-      }
+      const line = linesById.get(sale.lineId);
+      const collectionName = line ? lookupCollection(line, productIndex).collectionName : null;
+      const price = amount(line?.originalUnitPriceSet);
+      Object.assign(values, common, {
+        orderType: type,
+        collectionName,
+        productTitle: line?.title ?? "(item no longer on the order)",
+        sku: line?.sku ?? null,
+        barcode: line?.variant?.barcode ?? null,
+        variantPrice: line ? price : null,
+        unitPriceBeforeVat: line ? unitPriceBeforeVat(price) : null,
+        netItemsSold: sale.quantity,
+        grossSales: figures.grossSales,
+        discounts: figures.discounts,
+        discountCodeReason: line && figures.discounts !== 0 ? discountCodeOrReason(line, discountIndex, discountOptions) : null,
+        netSales: figures.net,
+        taxes: figures.taxes,
+        returnReason: type === ORDER_TYPES.reversal ? reasonFor(order, agreement.return?.id, sale.lineId) : null,
+        totalSales: figures.total,
+      });
+      rows.push({ values, meta: { ...baseMeta, kind: "line", actionType: sale.actionType, happenedAt: agreement.happenedAt, lineItemId: sale.lineId, productId: line?.product?.id ?? null, collectionName } });
     }
 
-    // Shipping: one row per event that charged it (nothing when it was free).
-    const charged = shipping.reduce((sum, sale) => ({ total: sum.total + sale.total, tax: sum.tax + sale.tax }), { total: 0, tax: 0 });
-    if (shipping.length && round2(charged.total) !== 0) {
+    // Shipping: one row per event that charged it or discounted it. A fully
+    // discounted ("Free Shipping") order gets a row with 0.00 and the discount's name.
+    const charged = shipping.reduce((sum, sale) => ({ total: sum.total + sale.total, tax: sum.tax + sale.tax, discount: sum.discount + sale.discountBefore }), { total: 0, tax: 0, discount: 0 });
+    const hasCharge = round2(charged.total) !== 0;
+    const hasDiscount = shipping[0]?.actionType === "ORDER" && round2(charged.discount) > 0;
+    if (shipping.length && (hasCharge || hasDiscount)) {
       const isReturn = shipping[0].actionType !== "ORDER";
       const values = emptyValues(columns);
       Object.assign(values, common, {
@@ -158,6 +161,7 @@ export function ledgerOrderRows(order, agreements, { columns, productIndex, mapp
         netItemsSold: 0,
         grossSales: 0,
         discounts: 0,
+        discountCodeReason: hasDiscount ? shippingDiscountLabel(order, discountOptions) : null,
         netSales: 0,
         shippingCharges: round2(charged.total - charged.tax),
         isShippingCharges: "Yes",

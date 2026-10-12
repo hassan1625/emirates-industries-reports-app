@@ -11,7 +11,7 @@ const minutesAgo = (m) => new Date(NOW.getTime() - m * 60 * 1000);
 // updatedAt, which the recovery claims rely on.
 function fakeDb(initial) {
   let tick = 0;
-  const jobs = new Map(initial.map((j) => [j.id, { shop: "demo.myshopify.com", error: null, ordersBulkOpId: null, productsBulkOpId: null, createdAt: minutesAgo(60), ...j }]));
+  const jobs = new Map(initial.map((j) => [j.id, { shop: "demo.myshopify.com", error: null, ordersBulkOpId: null, eventsBulkOpId: null, productsBulkOpId: null, createdAt: minutesAgo(60), ...j }]));
   const bump = (job) => {
     job.updatedAt = new Date(NOW.getTime() + ++tick);
   };
@@ -42,8 +42,8 @@ function fakeDb(initial) {
 const job = (overrides) => ({ id: "job1", stage: STAGES.ORDERS_RUNNING, ordersBulkOpId: "op-orders", updatedAt: minutesAgo(5), ...overrides });
 const operation = (overrides) => ({ id: "op", status: "COMPLETED", errorCode: null, url: "https://example.test/f", ...overrides });
 
-function harness(db, { op = operation(), advanceCalls = [], products } = {}) {
-  const calls = { lookup: [], startProducts: 0, getAdmin: [] };
+function harness(db, { op = operation(), advanceCalls = [], events, products } = {}) {
+  const calls = { lookup: [], startEvents: 0, startProducts: 0, getAdmin: [] };
   return {
     calls,
     run: (extra = {}) =>
@@ -63,10 +63,16 @@ function harness(db, { op = operation(), advanceCalls = [], products } = {}) {
             advanceCalls.push(args);
             return { action: "advanced" };
           },
-          startProducts: products ?? (async () => {
-            calls.startProducts += 1;
-            return { id: "op-products" };
-          }),
+          start: {
+            events: events ?? (async () => {
+              calls.startEvents += 1;
+              return { id: "op-events" };
+            }),
+            products: products ?? (async () => {
+              calls.startProducts += 1;
+              return { id: "op-products" };
+            }),
+          },
         },
         ...extra,
       }),
@@ -94,6 +100,15 @@ describe("running exports whose webhook never arrived", () => {
     await h.run();
     assert.deepEqual(h.calls.lookup, ["op-products"]);
     assert.equal(advanceCalls[0].result.which, "products");
+  });
+
+  test("an events export is looked up by its own id", async () => {
+    const db = fakeDb([job({ stage: STAGES.EVENTS_RUNNING, eventsBulkOpId: "op-events" })]);
+    const advanceCalls = [];
+    const h = harness(db, { advanceCalls });
+    await h.run();
+    assert.deepEqual(h.calls.lookup, ["op-events"]);
+    assert.equal(advanceCalls[0].result.which, "events");
   });
 
   test("a failed or canceled export is passed on so the chain can mark the job FAILED", async () => {
@@ -167,31 +182,41 @@ describe("downloads that stopped part-way (process died)", () => {
   });
 });
 
-describe("products export that was refused or never started", () => {
-  const readyJob = (overrides) => job({ stage: STAGES.ORDERS_READY, createdAt: minutesAgo(10), updatedAt: minutesAgo(5), error: "Products export not started: OPERATION_IN_PROGRESS", ...overrides });
+describe("the next export that was refused or never started", () => {
+  const readyJob = (overrides) => job({ stage: STAGES.ORDERS_READY, createdAt: minutesAgo(10), updatedAt: minutesAgo(5), error: "returns and exchanges export not started: OPERATION_IN_PROGRESS", ...overrides });
 
-  test("is retried and recorded as running", async () => {
+  test("after the orders export, the events export is retried and recorded as running", async () => {
     const db = fakeDb([readyJob()]);
+    const h = harness(db);
+    const [outcome] = await h.run();
+    assert.equal(outcome.action, "events-started");
+    assert.equal(db.jobs.get("job1").stage, STAGES.EVENTS_RUNNING);
+    assert.equal(db.jobs.get("job1").eventsBulkOpId, "op-events");
+    assert.equal(db.jobs.get("job1").error, null);
+  });
+
+  test("after the events export, the products export is retried", async () => {
+    const db = fakeDb([readyJob({ stage: STAGES.EVENTS_READY })]);
     const h = harness(db);
     const [outcome] = await h.run();
     assert.equal(outcome.action, "products-started");
     assert.equal(db.jobs.get("job1").stage, STAGES.PRODUCTS_RUNNING);
     assert.equal(db.jobs.get("job1").productsBulkOpId, "op-products");
-    assert.equal(db.jobs.get("job1").error, null);
+    assert.equal(h.calls.startEvents, 0);
   });
 
   test("a retry that fails again keeps the job at ORDERS_READY with the new error", async () => {
     const db = fakeDb([readyJob()]);
-    const h = harness(db, { products: async () => { throw new Error("still busy"); } });
+    const h = harness(db, { events: async () => { throw new Error("still busy"); } });
     const [outcome] = await h.run();
-    assert.equal(outcome.action, "products-start-failed");
+    assert.equal(outcome.action, "events-start-failed");
     assert.equal(db.jobs.get("job1").stage, STAGES.ORDERS_READY);
     assert.match(db.jobs.get("job1").error, /still busy/);
   });
 
   test("a second pass right after backs off instead of retrying again", async () => {
     const db = fakeDb([readyJob()]);
-    const h = harness(db, { products: async () => { throw new Error("busy"); } });
+    const h = harness(db, { events: async () => { throw new Error("busy"); } });
     await h.run();
     const [second] = await h.run({ now: new Date(NOW.getTime() + 1000) });
     assert.equal(second.action, "waiting");
@@ -202,11 +227,11 @@ describe("products export that was refused or never started", () => {
     const h = harness(db);
     const [outcome] = await h.run();
     assert.equal(outcome.action, "failed");
-    assert.match(db.jobs.get("job1").error, /Products export could not be started/);
-    assert.equal(h.calls.startProducts, 0);
+    assert.match(db.jobs.get("job1").error, /returns and exchanges export could not be started/);
+    assert.equal(h.calls.startEvents, 0);
   });
 
-  test("a job that only just reached ORDERS_READY is not touched", async () => {
+  test("a job that only just reached a READY stage is not touched", async () => {
     const db = fakeDb([readyJob({ updatedAt: minutesAgo(0.1) })]);
     const h = harness(db);
     assert.equal((await h.run())[0].action, "waiting");
@@ -265,19 +290,19 @@ describe("other cases", () => {
   test("defaults match the documented timings", () => {
     assert.equal(RECOVERY_CONFIG.runningPollAfterMs, 90_000);
     assert.equal(RECOVERY_CONFIG.maxRunningMs, 3 * 60 * 60 * 1000);
-    assert.equal(RECOVERY_CONFIG.productsRetryUntilMs, 30 * 60 * 1000);
+    assert.equal(RECOVERY_CONFIG.nextExportRetryUntilMs, 30 * 60 * 1000);
   });
 });
 
 // The real chain, driven by the recovery pass, end to end with a fake Shopify.
 describe("recovery drives the real chain", () => {
-  test("a completed orders export reaches ORDERS_READY then PRODUCTS_RUNNING with no webhook", async () => {
+  test("a completed orders export reaches ORDERS_READY then EVENTS_RUNNING with no webhook", async () => {
     const db = fakeDb([job()]);
     const calls = { download: [] };
     const chainDeps = {
       download: async (url, dest) => calls.download.push({ url, dest }),
-      verify: { orders: async () => ({ orders: 1 }), products: async () => ({ products: 1 }) },
-      startProducts: async () => ({ id: "op-products" }),
+      verify: { orders: async () => ({ orders: 1 }), events: async () => ({ events: 1 }), products: async () => ({ products: 1 }) },
+      start: { events: async () => ({ id: "op-events" }), products: async () => ({ id: "op-products" }) },
       filePath: (id, which) => `/data/${id}/${which}.jsonl`,
     };
     const outcomes = await recoverStuckJobs({
@@ -286,8 +311,8 @@ describe("recovery drives the real chain", () => {
       getAdmin: async () => ({}),
       deps: { fetchBulkOperation: async () => operation(), advanceJob: (args) => advanceJob({ ...args, deps: chainDeps }) },
     });
-    assert.equal(outcomes[0].action, "recovered:products-started");
-    assert.equal(db.jobs.get("job1").stage, STAGES.PRODUCTS_RUNNING);
+    assert.equal(outcomes[0].action, "recovered:events-started");
+    assert.equal(db.jobs.get("job1").stage, STAGES.EVENTS_RUNNING);
     assert.equal(db.jobs.get("job1").ordersFile, "/data/job1/orders.jsonl");
     assert.equal(calls.download.length, 1);
   });

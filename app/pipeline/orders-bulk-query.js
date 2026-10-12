@@ -37,11 +37,22 @@ export function buildOrdersBulkQuery({ start, end }) {
   return ordersQueryText(buildOrdersSearchQuery({ start, end }), "CREATED_AT");
 }
 
-// The same data for every order that CHANGED since `start` (created, edited,
-// refunded, returned, exchanged), whatever its creation date. This is the order
-// set a dated-events report needs: a return today belongs to an older order.
-export function buildOrdersUpdatedSinceQuery({ start }) {
-  return ordersQueryText(`updated_at:>=${toIso(start, "start")}`, "UPDATED_AT");
+// Search text for every order that CHANGED from `start` (and, when given, up to
+// `cutoff`): created, edited, refunded, returned, exchanged, whatever its
+// creation date. This is the order set a dated-events report needs: a return
+// today belongs to an older order. The same filter selects the events export,
+// so both files describe the same orders.
+export function updatedWindowFilter({ start, cutoff }) {
+  const from = toIso(start, "start");
+  if (cutoff === undefined || cutoff === null) return `updated_at:>=${from}`;
+  const to = toIso(cutoff, "cutoff");
+  if (new Date(from) > new Date(to)) throw new Error("Date range start must not be after the cutoff");
+  return `updated_at:>=${from} updated_at:<=${to}`;
+}
+
+// The orders data for that order set.
+export function buildOrdersUpdatedSinceQuery(window) {
+  return ordersQueryText(updatedWindowFilter(window), "UPDATED_AT");
 }
 
 function ordersQueryText(filter, sortKey) {
@@ -150,4 +161,9 @@ export { RUN_BULK_QUERY_MUTATION } from "./bulk.js";
 // Starts the orders export. Returns { id, status }; see startBulkOperation.
 export function startOrdersBulkOperation(admin, range) {
   return startBulkOperation(admin, buildOrdersBulkQuery(range), "orders bulk query");
+}
+
+// Starts the orders export for a job's window ({ start, cutoff }).
+export function startOrdersUpdatedSinceOperation(admin, window) {
+  return startBulkOperation(admin, buildOrdersUpdatedSinceQuery(window), "orders bulk query");
 }

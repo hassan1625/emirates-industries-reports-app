@@ -20,11 +20,12 @@ const order = {
   paymentGatewayNames: ["cash"],
   lineItems: [{ id: "L1", title: "Shirt", sku: "S", quantity: 2, originalUnitPriceSet: money(115.5), variant: { barcode: "B" }, product: { id: "P" }, discountAllocations: [] }],
   returns: [{ id: "R1", status: "CLOSED", returnLineItems: [{ quantity: 1, returnReasonDefinition: { name: "Too small" }, fulfillmentLineItem: { lineItem: { id: "L1" } } }] }],
-  discountApplications: [],
+  discountApplications: [{ __typename: "AutomaticDiscountApplication", index: 0, targetType: "SHIPPING_LINE", title: "Free Shipping" }],
 };
 const agreements = [
   { id: "A1", happenedAt: "2026-09-01T06:00:00Z", reason: "ORDER", sales: [sale("ORDER", "PRODUCT", "L1", 2, 231, 11, 10), sale("ORDER", "SHIPPING", "S1", null, 22, 1.05)] },
   { id: "A2", happenedAt: "2026-09-05T06:00:00Z", reason: "RETURN", return: { id: "R1" }, sales: [sale("RETURN", "PRODUCT", "L1", -1, -115.5, -5.5, -5), sale("RETURN", "ADJUSTMENT", null, null, 3, 0)] },
+  { id: "A3", happenedAt: "2026-09-06T06:00:00Z", reason: "ORDER", sales: [sale("ORDER", "SHIPPING", "S2", null, 0, 0, 22)] },
 ];
 const context = { columns: ledgerColumns(), productIndex: { byProductId: new Map([["P", { collectionName: "Coll" }]]) }, mappings: new Map(), staffByOrder: new Map([["#1", "Sam"]]), startMs: Date.parse("2026-08-31T20:00:00Z"), endMs: Date.parse("2026-09-30T19:59:59Z") };
 
@@ -75,8 +76,18 @@ describe("ledgerOrderRows", () => {
     assert.equal(rev.values.paymentMethod, null);
   });
 
-  test("a retained exchange credit becomes an adjustment row", () => {
-    assert.equal(by("adjustment", "Reversal").values.netSales, 3);
+  test("a retained exchange credit is left out", () => {
+    assert.equal(rows.filter((r) => r.meta.kind === "adjustment").length, 0);
+    assert.ok(!rows.some((r) => r.values.netSales === 3));
+  });
+
+  test("a Free Shipping order gets a shipping row at 0.00 naming the discount", () => {
+    const free = rows.filter((r) => r.meta.kind === "shipping" && r.values.orderDate.startsWith("2026-09-06"));
+    assert.equal(free.length, 1);
+    assert.equal(free[0].values.shippingCharges, 0);
+    assert.equal(free[0].values.totalSales, 0);
+    assert.equal(free[0].values.isShippingCharges, "Yes");
+    assert.equal(free[0].values.discountCodeReason, "Free Shipping");
   });
 
   test("only events inside the period are included", () => {
@@ -86,8 +97,8 @@ describe("ledgerOrderRows", () => {
 
   test("totals add up to net + shipping + taxes", () => {
     const s = summarizeRows(rows);
-    assert.equal(s.netSales, 113);
-    assert.equal(s.totalSales, round(113 + 20.95 + 6.55 + 0));
+    assert.equal(s.netSales, 110);
+    assert.equal(s.totalSales, round(110 + 20.95 + 6.55 + 0));
     function round(v) { return Math.round(v * 100) / 100; }
   });
 });
