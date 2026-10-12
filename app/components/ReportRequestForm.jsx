@@ -1,92 +1,33 @@
-// Request screen form (Dev Plan Step 24). Renders the date range and every
-// filter listed in the report's config, so adding a filter to the config adds it
-// here. No filter or label is written out in this file.
+// Request screen form (Dev Plan Step 24, redesigned). Renders the date range and
+// every filter listed in the report's config, so adding a filter to the config
+// adds it here. No filter or label is written out in this file.
 //
-// The app runs React 18, which does not wire custom-element events or
-// properties for Polaris web components. Values therefore come from `change`
-// listeners attached through refs, and boolean attributes are passed as
-// `true` or left out entirely (a `false` would still render as "present").
-import { useEffect, useRef, useState } from "react";
+// Layout: the report status card first (so the result is visible right after
+// Generate), then the date range, compact searchable filters and the column
+// choice, with a Summary of the request beside them.
+import { useState } from "react";
 import { getReport, getReportFilters, getSelectableFields, hasFieldSelection } from "../config";
+import { DATE_PRESETS, matchPreset, presetRange } from "../pipeline/date-presets";
+import MultiFilter from "./MultiFilter";
+import { Checkbox, DateInput, SelectField } from "./polaris-inputs";
 
-// Keeps one listener attached with the latest handler.
-function useChangeListener(ref, handler) {
-  const latest = useRef(handler);
-  latest.current = handler;
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return undefined;
-    const listener = (event) => latest.current(event);
-    element.addEventListener("change", listener);
-    return () => element.removeEventListener("change", listener);
-  }, [ref]);
-}
-
-function DateInput({ label, name, value, onValue, error }) {
-  const ref = useRef(null);
-  useChangeListener(ref, (event) => onValue(event.currentTarget.value ?? ""));
-  return <s-date-field ref={ref} label={label} name={name} value={value} error={error || undefined} required />;
-}
-
-function ChoiceFilter({ filter, options, values, onValues, error }) {
-  const ref = useRef(null);
-  useChangeListener(ref, (event) => onValues(event.currentTarget.values ?? []));
-  const unavailable = filter.available === false;
-  return (
-    <s-choice-list
-      ref={ref}
-      label={filter.label}
-      name={filter.key}
-      multiple
-      disabled={unavailable || undefined}
-      details={unavailable ? filter.unavailableReason : "Leave empty to include everything."}
-      error={error || undefined}
-    >
-      {options.map((option) => (
-        <s-choice key={option.value} value={option.value} selected={values.includes(option.value) || undefined}>
-          {option.label}
-        </s-choice>
-      ))}
-    </s-choice-list>
-  );
-}
-
-// A Polaris checkbox. React 18 only sets the `checked` attribute, which the
-// element ignores once the user has clicked it, so the property is kept in step
-// with our state in an effect.
-function Checkbox({ label, name, checked, indeterminate, disabled, details, onChecked }) {
-  const ref = useRef(null);
-  useChangeListener(ref, (event) => onChecked(Boolean(event.currentTarget.checked)));
-  useEffect(() => {
-    if (!ref.current) return;
-    ref.current.checked = Boolean(checked);
-    ref.current.indeterminate = Boolean(indeterminate);
-  }, [checked, indeterminate]);
-  return (
-    <s-checkbox
-      ref={ref}
-      label={label}
-      name={name}
-      checked={checked || undefined}
-      indeterminate={indeterminate || undefined}
-      disabled={disabled || undefined}
-      details={details}
-    />
-  );
-}
+// The Summary stays in view while the form scrolls.
+const STICKY = { position: "sticky", top: 16 };
 
 // reportKey  key in app/config/reports
 // options    { [filterKey]: [{ value, label }] }
-// defaults   { dateRange: { from, to }, fields: [fieldKey] }
+// defaults   { dateRange: { from, to }, today?, fields: [fieldKey] }
 // errors     { [filterKey]: message } from the server
-// children   rendered inside the page after the form (job status, preview)
+// renderStatus  ({ submit, clearFilters }) => node, shown first (the status card)
+// children   rendered after the form (the Recent reports list)
 // onSubmit   ({ dateRange: { from, to }, filters: { [filterKey]: string[] }, fields?: string[] })
-export default function ReportRequestForm({ reportKey, options, defaults, errors = {}, busy = false, onSubmit, children }) {
+export default function ReportRequestForm({ reportKey, options, defaults, errors = {}, busy = false, onSubmit, renderStatus, children }) {
   const report = getReport(reportKey);
   const filters = getReportFilters(reportKey);
   const dateFilter = filters.find((f) => f.type === "dateRange");
-  const selectFilters = filters.filter((f) => f.type === "multiSelect" || f.type === "singleSelect");
+  const selectFilters = filters.filter((f) => (f.type === "multiSelect" || f.type === "singleSelect") && f.available !== false);
 
+  const today = defaults.today ?? defaults.dateRange.to;
   const [from, setFrom] = useState(defaults.dateRange.from);
   const [to, setTo] = useState(defaults.dateRange.to);
   const [selected, setSelected] = useState({});
@@ -99,19 +40,38 @@ export default function ReportRequestForm({ reportKey, options, defaults, errors
   const chosenCount = selectable.filter((key) => fields.includes(key)).length;
   const toggleField = (key, on) => setFields((current) => (on ? [...new Set([...current, key])] : current.filter((k) => k !== key)));
 
+  const preset = matchPreset(from, to, today);
+  const choosePreset = (key) => {
+    const range = presetRange(key, today);
+    if (range) {
+      setFrom(range.from);
+      setTo(range.to);
+    }
+  };
+
   const submit = () => onSubmit({ dateRange: { from, to }, filters: selected, ...(withFields ? { fields } : {}) });
+  const clearFilters = () => setSelected({});
+  const summarize = (filter) => ((selected[filter.key] ?? []).length ? `${selected[filter.key].length} selected` : (filter.allLabel ?? "All"));
 
   return (
     <s-page heading={report.label}>
       <s-button slot="primary-action" variant="primary" onClick={submit} loading={busy || undefined}>
         Generate report
       </s-button>
+      {report.description && (
+        <s-section>
+          <s-text color="subdued">{report.description}</s-text>
+        </s-section>
+      )}
+
+      {renderStatus?.({ submit, clearFilters })}
 
       {dateFilter && (
         <s-section heading={dateFilter.label}>
-          <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-            <DateInput label="From" name={`${dateFilter.key}-from`} value={from} onValue={setFrom} error={errors[dateFilter.key]} />
-            <DateInput label="To" name={`${dateFilter.key}-to`} value={to} onValue={setTo} />
+          <s-grid gridTemplateColumns="1fr 1fr 1fr" gap="base">
+            <SelectField label="Period" name="period" value={preset} options={DATE_PRESETS.map(({ key, label }) => ({ value: key, label }))} onValue={choosePreset} />
+            <DateInput label="Start date" name={`${dateFilter.key}-from`} value={from} onValue={setFrom} error={errors[dateFilter.key]} />
+            <DateInput label="End date" name={`${dateFilter.key}-to`} value={to} onValue={setTo} />
           </s-grid>
         </s-section>
       )}
@@ -119,33 +79,40 @@ export default function ReportRequestForm({ reportKey, options, defaults, errors
       {selectFilters.length > 0 && (
         <s-section heading="Filters">
           <s-stack gap="base">
-            {selectFilters.map((filter) => (
-              <ChoiceFilter
-                key={filter.key}
-                filter={filter}
-                options={options[filter.key] ?? []}
-                values={selected[filter.key] ?? []}
-                onValues={(values) => setSelected((current) => ({ ...current, [filter.key]: values }))}
-                error={errors[filter.key]}
-              />
-            ))}
+            <s-text color="subdued">All optional. Leave a filter empty to include everything.</s-text>
+            <s-grid gridTemplateColumns="1fr 1fr" gap="large">
+              {selectFilters.map((filter) => (
+                <MultiFilter
+                  key={filter.key}
+                  filter={filter}
+                  options={options[filter.key] ?? []}
+                  values={selected[filter.key] ?? []}
+                  onValues={(values) => setSelected((current) => ({ ...current, [filter.key]: values }))}
+                  error={errors[filter.key]}
+                />
+              ))}
+            </s-grid>
           </s-stack>
         </s-section>
       )}
+
       {withFields && (
-        <s-section heading="Fields">
+        <s-section heading="Columns">
           <s-stack gap="base">
-            <s-paragraph>
-              {chosenCount} of {selectable.length} fields selected. Choose the columns to include in the report.
-            </s-paragraph>
-            <Checkbox
-              label="Select all"
-              name="selectAllFields"
-              checked={chosenCount === selectable.length}
-              indeterminate={chosenCount > 0 && chosenCount < selectable.length}
-              onChecked={(on) => setFields(on ? selectable : [])}
-            />
-            <s-grid gridTemplateColumns="repeat(auto-fill, minmax(240px, 1fr))" gap="small">
+            <s-stack direction="inline" justifyContent="space-between" alignItems="center">
+              <s-text color="subdued">
+                {chosenCount} of {selectable.length} selected · shown in this order in the file
+              </s-text>
+              <s-stack direction="inline" gap="small">
+                <s-button variant="tertiary" onClick={() => setFields(selectable)}>
+                  Select all
+                </s-button>
+                <s-button variant="tertiary" onClick={() => setFields([])}>
+                  Clear
+                </s-button>
+              </s-stack>
+            </s-stack>
+            <s-grid gridTemplateColumns="repeat(3, minmax(0, 1fr))" gap="small">
               {fieldList.map((field) => (
                 <Checkbox
                   key={field.key}
@@ -163,7 +130,29 @@ export default function ReportRequestForm({ reportKey, options, defaults, errors
         </s-section>
       )}
 
+      <div slot="aside" style={STICKY}>
+        <s-section heading="Summary">
+          <s-stack gap="small">
+            <SummaryRow label="Dates" value={`${from} to ${to}`} />
+            {selectFilters.map((filter) => (
+              <SummaryRow key={filter.key} label={filter.label} value={summarize(filter)} />
+            ))}
+            {withFields && <SummaryRow label="Columns" value={`${chosenCount} of ${selectable.length}`} />}
+            <SummaryRow label="File" value="Excel (.xlsx)" />
+          </s-stack>
+        </s-section>
+      </div>
+
       {children}
     </s-page>
+  );
+}
+
+function SummaryRow({ label, value }) {
+  return (
+    <s-stack direction="inline" justifyContent="space-between" gap="base">
+      <s-text color="subdued">{label}</s-text>
+      <s-text type="strong">{value}</s-text>
+    </s-stack>
   );
 }

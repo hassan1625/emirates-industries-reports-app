@@ -80,6 +80,21 @@ describe("recent reports", () => {
     assert.deepEqual(fakeDb.args, { where: { shop: "s", reportType: "generalSales" }, orderBy: { createdAt: "desc" }, take: 5 });
   });
 
+  test("without a report it lists every real report (debug jobs are never listed), newest first", async () => {
+    await listRecentJobs({ db: fakeDb, shop: "s", limit: 20 });
+    assert.deepEqual(fakeDb.args.where.shop, "s");
+    assert.ok(fakeDb.args.where.reportType.in.includes("generalSales"));
+    assert.ok(!fakeDb.args.where.reportType.in.includes("debugPipeline"));
+    assert.equal(fakeDb.args.take, 20);
+  });
+
+  test("each job names its report and the screen it belongs to", async () => {
+    const [ready] = await listRecentJobs({ db: fakeDb, shop: "s", reportType: "generalSales" });
+    assert.equal(ready.reportKey, "generalSales");
+    assert.equal(ready.reportLabel, "General Sales Report");
+    assert.equal(ready.route, "/app/report-general-sales");
+  });
+
   test("each job says what it was, how it ended and what file it has", async () => {
     const [ready, failed, running] = await listRecentJobs({ db: fakeDb, shop: "s", reportType: "generalSales" });
     assert.deepEqual(ready.range, { from: "2026-10-05", to: "2026-10-11" });

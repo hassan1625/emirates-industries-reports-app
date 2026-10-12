@@ -1,16 +1,17 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFetcher, useLoaderData, useRevalidator, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import ReportRequestForm from "../components/ReportRequestForm";
-import { JobStatus, RecentReports, RequestSummary } from "../components/JobStatus";
+import { RecentReports } from "../components/JobStatus";
+import ReportStatusCard from "../components/ReportStatusCard";
 import { useReportDownload } from "../components/useReportDownload";
-import { defaultFieldKeys, getReportFields } from "../config";
+import { defaultFieldKeys } from "../config";
 import { STORE_TIME_ZONE } from "../config/store";
 import { addDays, todayInZone } from "../pipeline/dates";
 import { allowedValues, loadFilterOptions } from "../pipeline/filter-options";
-import { STAGES, isTerminalStage } from "../pipeline/job-stages";
+import { isTerminalStage } from "../pipeline/job-stages";
 import { describeFilters, parseReportRequest } from "../pipeline/report-request";
 import { listRecentJobs } from "../pipeline/recent-jobs";
 import { startReportJob } from "../pipeline/start-job";
@@ -26,7 +27,7 @@ export const loader = async ({ request }) => {
   return {
     options: await loadFilterOptions(admin, session.shop),
     recent: await listRecentJobs({ db, shop: session.shop, reportType: REPORT_KEY }),
-    defaults: { dateRange: { from: addDays(today, -29), to: today }, fields: defaultFieldKeys(REPORT_KEY) }, // last 30 days
+    defaults: { today, dateRange: { from: addDays(today, -29), to: today }, fields: defaultFieldKeys(REPORT_KEY) }, // last 30 days
   };
 };
 
@@ -67,7 +68,6 @@ export default function GeneralSalesReport() {
   const submit = useFetcher();
   const status = useFetcher();
   const [searchParams, setSearchParams] = useSearchParams();
-  const fieldLabels = Object.fromEntries(getReportFields(REPORT_KEY).map((field) => [field.key, field.label]));
 
   // The job being watched: the one just started, or the one named in the URL
   // (so reloading the page keeps following it).
@@ -98,6 +98,14 @@ export default function GeneralSalesReport() {
     }
   }, [jobId, terminal, revalidator]);
 
+  // Elapsed time on the status card ticks every second while a report builds.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!jobId || terminal) return undefined;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [jobId, terminal]);
+
   return (
     <ReportRequestForm
       reportKey={REPORT_KEY}
@@ -106,19 +114,31 @@ export default function GeneralSalesReport() {
       errors={submit.data?.errors ?? {}}
       busy={submit.state !== "idle"}
       onSubmit={(payload) => submit.submit(payload, { method: "post", encType: "application/json" })}
-    >
-      {submit.data?.errors?.form && <s-banner tone="critical">{submit.data.errors.form}</s-banner>}
-      {current && (
+      renderStatus={({ submit: resubmit, clearFilters }) => (
         <>
-          <JobStatus status={current.job} file={current.file} onDownload={() => download(jobId)} downloading={busyId === jobId} downloadError={downloadError} />
-          {stage === STAGES.READY && (
-            <s-section heading="Your request">
-              <RequestSummary request={current.request} fieldLabels={fieldLabels} />
+          {submit.data?.errors?.form && (
+            <s-section>
+              <s-banner tone="critical">{submit.data.errors.form}</s-banner>
             </s-section>
           )}
+          <ReportStatusCard
+            status={current?.job ?? null}
+            file={current?.file ?? null}
+            now={now}
+            onDownload={() => download(jobId)}
+            downloading={busyId === jobId}
+            downloadError={downloadError}
+            onRetry={resubmit}
+            onClearFilters={clearFilters}
+          />
         </>
       )}
-      {downloadError && !current?.file && <s-banner tone="critical">{downloadError}</s-banner>}
+    >
+      {downloadError && !current?.file && (
+        <s-section>
+          <s-banner tone="critical">{downloadError}</s-banner>
+        </s-section>
+      )}
       <RecentReports jobs={recent} onOpen={(id) => setSearchParams({ job: id })} onDownload={download} downloadingId={busyId} />
     </ReportRequestForm>
   );

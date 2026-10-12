@@ -1,54 +1,86 @@
-// Server-side renders of the job status and request summary components
-// (Dev Plan Step 26).
+// Server-side renders of the report status card, request summary and Recent
+// reports table.
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { createServer } from "vite";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { STAGES, STAGE_INFO } from "../app/pipeline/job-stages.js";
+import { PROGRESS_STEPS, STAGES, stepOfStage } from "../app/pipeline/job-stages.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 let vite;
-let JobStatus, RequestSummary, RecentReports;
+let ReportStatusCard, RequestSummary, RecentReports;
 
 before(async () => {
   vite = await createServer({ root, configFile: false, logLevel: "error", server: { middlewareMode: true }, appType: "custom", optimizeDeps: { noDiscovery: true, include: [] }, esbuild: { jsx: "automatic" } });
-  ({ JobStatus, RequestSummary, RecentReports } = await vite.ssrLoadModule("/app/components/JobStatus.jsx"));
+  ({ RequestSummary, RecentReports } = await vite.ssrLoadModule("/app/components/JobStatus.jsx"));
+  ReportStatusCard = (await vite.ssrLoadModule("/app/components/ReportStatusCard.jsx")).default;
 });
 after(async () => vite.close());
 
-const status = (stage, extra = {}) => ({ id: "j1", stage, label: STAGE_INFO[stage].label, detail: STAGE_INFO[stage].detail, error: null, createdAt: "2026-10-04T10:00:00.000Z", updatedAt: "2026-10-04T10:04:12.000Z", ...extra });
+const CREATED = Date.parse("2026-10-04T10:00:00.000Z");
+const status = (stage, extra = {}) => ({ id: "j1", stage, error: null, createdAt: "2026-10-04T10:00:00.000Z", updatedAt: "2026-10-04T10:03:12.000Z", ...extra });
 const render = (component, props) => renderToStaticMarkup(createElement(component, props));
+const file = { name: "General-Sales-Report_2026-10-05_to_2026-10-11.xlsx", bytes: 22_872_652, rows: 172019 };
 
-test("a running job shows a spinner, its label and the keep-waiting hint", () => {
-  const html = render(JobStatus, { status: status(STAGES.ORDERS_RUNNING) });
-  assert.match(html, /<s-spinner/);
-  assert.match(html, /<s-badge tone="info">Collecting orders<\/s-badge>/);
-  assert.match(html, /This page updates by itself/);
-  assert.match(html, /so far/);
-});
-
-test("every non-final stage shows a spinner and its own label", () => {
-  for (const stage of [STAGES.PENDING, STAGES.ORDERS_RUNNING, STAGES.ORDERS_DOWNLOADING, STAGES.ORDERS_READY, STAGES.PRODUCTS_RUNNING, STAGES.PRODUCTS_DOWNLOADING, STAGES.DATA_READY, STAGES.GENERATING]) {
-    const html = render(JobStatus, { status: status(stage) });
-    assert.match(html, /<s-spinner/, stage);
-    assert.ok(html.includes(STAGE_INFO[stage].label), stage);
-  }
-});
-
-test("a finished job shows success, no spinner, and how long it took", () => {
-  const html = render(JobStatus, { status: status(STAGES.READY) });
-  assert.match(html, /<s-badge tone="success">Report ready<\/s-badge>/);
+test("before any request the card says no report yet", () => {
+  const html = render(ReportStatusCard, { status: null });
+  assert.match(html, /No report yet/);
+  assert.match(html, /Generate report/);
   assert.doesNotMatch(html, /<s-spinner/);
-  assert.match(html, /took 252s/); // 4 min 12 s between created and updated
-  assert.doesNotMatch(html, /This page updates by itself/);
 });
 
-test("a failed job shows the reason in a critical banner", () => {
-  const html = render(JobStatus, { status: status(STAGES.FAILED, { error: "orders export FAILED (TIMEOUT)" }) });
-  assert.match(html, /<s-badge tone="critical">Failed<\/s-badge>/);
-  assert.match(html, /<s-banner tone="critical">orders export FAILED \(TIMEOUT\)<\/s-banner>/);
+test("building: a spinner on the current step, finished steps ticked, elapsed time and the leave-the-page note", () => {
+  const html = render(ReportStatusCard, { status: status(STAGES.EVENTS_RUNNING), now: CREATED + 102_000 });
+  assert.match(html, /Step 2 of 4/);
+  assert.match(html, /Elapsed 1:42/);
+  assert.equal((html.match(/<s-spinner/g) ?? []).length, 1);
+  assert.equal((html.match(/type="check-circle"/g) ?? []).length, 1); // orders done
+  assert.equal((html.match(/type="circle"/g) ?? []).length, 2); // products and the file still to do
+  for (const step of PROGRESS_STEPS) assert.ok(html.includes(step.label), step.label);
+  assert.match(html, /several minutes/);
+  assert.match(html, /leave this page/);
+});
+
+test("every stage of a running job belongs to exactly one step", () => {
+  const running = Object.values(STAGES).filter((stage) => ![STAGES.READY, STAGES.FAILED].includes(stage));
+  for (const stage of running) assert.ok(stepOfStage(stage) >= 0, stage);
+  assert.equal(stepOfStage(STAGES.PENDING), 0);
+  assert.equal(stepOfStage(STAGES.PRODUCTS_DOWNLOADING), 2);
+  assert.equal(stepOfStage(STAGES.GENERATING), 3);
+  for (const stage of running) assert.match(render(ReportStatusCard, { status: status(stage), now: CREATED }), /<s-spinner/, stage);
+});
+
+test("ready: file name, size, rows, how long it took and a Download button", () => {
+  const html = render(ReportStatusCard, { status: status(STAGES.READY), file, onDownload: () => {} });
+  assert.match(html, /<s-badge tone="success">Report ready<\/s-badge>/);
+  assert.match(html, /General-Sales-Report_2026-10-05_to_2026-10-11\.xlsx/);
+  assert.match(html, /21\.8 MB/);
+  assert.match(html, /172,019 rows/);
+  assert.match(html, /Built in 3:12/);
+  assert.match(html, /Download Excel file/);
+  assert.doesNotMatch(html, /<s-spinner/);
+});
+
+test("ready without a handler has no Download button; a download error is shown", () => {
+  assert.doesNotMatch(render(ReportStatusCard, { status: status(STAGES.READY), file }), /Download Excel file/);
+  assert.match(render(ReportStatusCard, { status: status(STAGES.READY), file, onDownload: () => {}, downloadError: "Could not prepare the download." }), /Could not prepare the download\./);
+});
+
+test("ready with no rows explains why and offers Clear filters", () => {
+  const html = render(ReportStatusCard, { status: status(STAGES.READY), file: { ...file, rows: 0 }, onDownload: () => {}, onClearFilters: () => {} });
+  assert.match(html, /No orders match these filters/);
+  assert.match(html, /Clear filters/);
+  assert.doesNotMatch(html, /Download Excel file/);
+});
+
+test("failed: plain message, the reason, and Try again", () => {
+  const html = render(ReportStatusCard, { status: status(STAGES.FAILED, { error: "orders export FAILED (TIMEOUT)" }), onRetry: () => {} });
+  assert.match(html, /We couldn&#x27;t build your report|We couldn't build your report/);
+  assert.match(html, /orders export FAILED \(TIMEOUT\)/);
+  assert.match(html, /Try again/);
+  assert.match(html, /saved/);
   assert.doesNotMatch(html, /<s-spinner/);
 });
 
@@ -68,29 +100,7 @@ test("RequestSummary says 'no filters', and renders nothing without a request", 
   assert.equal(render(RequestSummary, { request: null, fieldLabels: {} }), "");
 });
 
-const file = { name: "General-Sales-Report_2026-10-05_to_2026-10-11.xlsx", bytes: 22_872_652, rows: 172019 };
-
-test("a finished report shows its file, row count, size and a Download button", () => {
-  const html = render(JobStatus, { status: status(STAGES.READY), file, onDownload: () => {} });
-  assert.match(html, /General-Sales-Report_2026-10-05_to_2026-10-11\.xlsx/);
-  assert.match(html, /172,019 rows/);
-  assert.match(html, /21\.8 MB/);
-  assert.match(html, /Download Excel file/);
-});
-
-test("without a handler there is no Download button, and a download error is shown", () => {
-  assert.doesNotMatch(render(JobStatus, { status: status(STAGES.READY), file }), /Download Excel file/);
-  assert.match(render(JobStatus, { status: status(STAGES.READY), file, onDownload: () => {}, downloadError: "Could not prepare the download." }), /Could not prepare the download\./);
-});
-
-test("a running job says it can be left and found under Recent reports", () => {
-  const html = render(JobStatus, { status: status(STAGES.EVENTS_RUNNING) });
-  assert.match(html, /several minutes/);
-  assert.match(html, /leave this page/);
-  assert.match(html, /Recent reports/);
-});
-
-const job = (over = {}) => ({ id: "j1", stage: STAGES.READY, label: "Report ready", terminal: true, createdAt: "2026-10-13T10:04:00.000Z", range: { from: "2026-10-05", to: "2026-10-11" }, filterCount: 2, error: null, file, ...over });
+const job = (over = {}) => ({ id: "j1", reportLabel: "General Sales Report", route: "/app/report-general-sales", stage: STAGES.READY, label: "Report ready", terminal: true, createdAt: "2026-10-13T10:04:00.000Z", range: { from: "2026-10-05", to: "2026-10-11" }, filterCount: 2, error: null, file, ...over });
 
 test("Recent reports lists each job with its period, status and a Download for finished ones", () => {
   const html = render(RecentReports, { jobs: [job(), job({ id: "j2", stage: STAGES.FAILED, label: "Failed", file: null }), job({ id: "j3", stage: STAGES.EVENTS_RUNNING, label: "Collecting returns and exchanges", terminal: false, file: null })], onOpen: () => {}, onDownload: () => {} });
@@ -101,6 +111,15 @@ test("Recent reports lists each job with its period, status and a Download for f
   assert.equal((html.match(/>Download</g) ?? []).length, 1); // only the finished report
   assert.match(html, /View progress/);
   assert.match(html, /Details/);
+  assert.doesNotMatch(html, /<s-table-header>Report<\/s-table-header>/);
+});
+
+test("a list that mixes reports shows the Report column and links Details to the report screen", () => {
+  const html = render(RecentReports, { jobs: [job()], heading: "Recent exports", showReport: true, detailsHref: (j) => `${j.route}?job=${j.id}`, onDownload: () => {} });
+  assert.match(html, /heading="Recent exports"/);
+  assert.match(html, /<s-table-header>Report<\/s-table-header>/);
+  assert.match(html, /General Sales Report/);
+  assert.match(html, /href="\/app\/report-general-sales\?job=j1"/);
 });
 
 test("Recent reports renders nothing when there are none", () => {

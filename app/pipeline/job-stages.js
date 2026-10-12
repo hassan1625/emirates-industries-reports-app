@@ -65,3 +65,15 @@ export const STAGE_INFO = Object.freeze({
 });
 
 export const isTerminalStage = (stage) => STAGE_INFO[stage]?.terminal ?? true;
+
+// The steps the screen lists while a report builds. Each covers the stages of
+// one export; the last covers building the file (staff names are looked up
+// there). `stepOfStage` gives the step a stage belongs to, or -1.
+export const PROGRESS_STEPS = Object.freeze([
+  { label: "Collecting orders", stages: [STAGES.PENDING, STAGES.ORDERS_RUNNING, STAGES.ORDERS_DOWNLOADING, STAGES.ORDERS_READY] },
+  { label: "Collecting returns and exchanges", stages: [STAGES.EVENTS_RUNNING, STAGES.EVENTS_DOWNLOADING, STAGES.EVENTS_READY] },
+  { label: "Collecting products", stages: [STAGES.PRODUCTS_RUNNING, STAGES.PRODUCTS_DOWNLOADING] },
+  { label: "Looking up staff and building the Excel file", stages: [STAGES.DATA_READY, STAGES.GENERATING] },
+]);
+
+export const stepOfStage = (stage) => PROGRESS_STEPS.findIndex((step) => step.stages.includes(stage));
