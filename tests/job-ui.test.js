@@ -122,6 +122,16 @@ test("a list that mixes reports shows the Report column and links Details to the
   assert.match(html, /href="\/app\/report-general-sales\?job=j1"/);
 });
 
+test("the list scrolls inside its section, the tabs sit apart from it, and a row's buttons stay side by side", () => {
+  const jobs = Array.from({ length: 15 }, (_, i) => job({ id: `j${i}` }));
+  const html = render(RecentReports, { jobs, showReport: true, onDownload: () => {}, detailsHref: (j) => `/x?job=${j.id}`, children: createElement("s-clickable-chip", null, "All 15") });
+  assert.match(html, /<div style="max-height:480px;overflow-y:auto" data-scroll="recent-reports">/);
+  assert.ok(html.indexOf("All 15") < html.indexOf('data-scroll="recent-reports"')); // tabs stay outside the scrolling area
+  assert.match(html, /<div style="margin-bottom:12px"><s-clickable-chip>All 15/);
+  assert.match(html, /<div style="display:flex;gap:8px;white-space:nowrap">/);
+  assert.equal((html.match(/<s-table-row>/g) ?? []).length, 15);
+});
+
 test("Recent reports renders nothing when there are none", () => {
   assert.equal(render(RecentReports, { jobs: [] }), "");
 });
