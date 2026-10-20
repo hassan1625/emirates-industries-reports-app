@@ -26,6 +26,9 @@ export const refundCreditReport = {
     // Amount including VAT; Shopify books no tax on it.
     { key: "creditAmount", label: "Credit Amount", type: "currency", source: { operation: "events", path: "agreements.sales.totalAmount" } },
     { key: "itemsReturned", label: "Items Returned", type: "string", width: 50, source: { operation: "events", path: "agreements.sales.lineItem" } },
+    // The SKUs of the returned items, in the same order as Items Returned, so
+    // two sizes of the same product can be told apart.
+    { key: "sku", label: "Product Variant SKU", type: "string", width: 40, source: { operation: "orders", path: "lineItems.sku" } },
     { key: "returnReason", label: "Return Reason", type: "string", width: 28, source: { operation: "returns", path: "returnLineItems.returnReason" } },
   ],
 

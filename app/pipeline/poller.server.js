@@ -5,6 +5,8 @@
 import db from "../db.server";
 import { unauthenticated } from "../shopify.server";
 import { recoverStuckJobs } from "./job-recovery";
+import { reportStore } from "./report-store";
+import { expireOldReports } from "./retention";
 
 const DEFAULT_INTERVAL_MS = 60 * 1000;
 
@@ -18,6 +20,13 @@ export async function runRecoveryPass() {
     }
   }
   return outcomes;
+}
+
+// Deletes reports past the retention period; runs about once an hour.
+export async function runRetentionPass() {
+  const expired = await expireOldReports({ db, store: reportStore() });
+  if (expired) console.log(`Retention: expired ${expired} old report(s)`);
+  return expired;
 }
 
 export function startJobPoller() {
@@ -44,6 +53,9 @@ export function startJobPoller() {
   };
 
   const interval = Number(env.JOB_POLLER_INTERVAL_MS) || DEFAULT_INTERVAL_MS;
+  const retention = () => runRetentionPass().catch((error) => console.error("Retention pass failed:", error));
+  setTimeout(retention, 30 * 1000).unref?.();
+  setInterval(retention, 60 * 60 * 1000).unref?.();
   setTimeout(tick, 5000).unref?.();
   setInterval(tick, interval).unref?.();
   console.log(`Job poller started (every ${Math.round(interval / 1000)}s)`);

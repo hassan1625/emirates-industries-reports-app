@@ -233,6 +233,48 @@ describe("generateReport", () => {
     assert.ok(notes.some((note) => /Refund Credit Report/.test(note)));
   });
 
+  test("the finished file is handed to the report store, which decides where it lives", async () => {
+    const db = fakeDb({ ...files, params: request({ fields: ["orderName"] }) });
+    const saved = [];
+    const deps = { save: async (args) => { saved.push(args); return "s3://bucket/reports/job1/General-Sales-Report_2026-09-01_to_2026-09-30.xlsx"; } };
+    const outcome = await generateReport({ db, admin: {}, jobId: "job1", deps });
+    assert.equal(outcome.action, "ready", db.row.error);
+    assert.equal(db.row.resultFileUrl, "s3://bucket/reports/job1/General-Sales-Report_2026-09-01_to_2026-09-30.xlsx");
+    assert.equal(saved.length, 1);
+    assert.equal(saved[0].jobId, "job1");
+    assert.equal(saved[0].fileName, "General-Sales-Report_2026-09-01_to_2026-09-30.xlsx");
+    assert.equal(saved[0].localPath, jobReportPath("job1"));
+  });
+
+  test("a failed upload fails the job and says why; no file is offered", async () => {
+    const db = fakeDb({ ...files, params: request({ fields: ["orderName"] }) });
+    const outcome = await generateReport({ db, admin: {}, jobId: "job1", deps: { save: async () => { throw new Error("AccessDenied"); } } });
+    assert.equal(outcome.action, "failed");
+    assert.equal(db.row.stage, STAGES.FAILED);
+    assert.match(db.row.error, /AccessDenied/);
+    assert.equal(db.row.resultFileUrl, null);
+  });
+
+  test("where working files are not kept (production), the three exports are deleted once the report exists", async () => {
+    const mine = { ordersFile: join(dir, "w-orders.jsonl"), eventsFile: join(dir, "w-events.jsonl"), productsFile: join(dir, "w-products.jsonl") };
+    await writeFile(mine.ordersFile, jsonl(ORDERS));
+    await writeFile(mine.eventsFile, jsonl(EVENTS));
+    await writeFile(mine.productsFile, jsonl(PRODUCTS));
+    const db = fakeDb({ ...mine, params: request({ fields: ["orderName"] }) });
+    const outcome = await generateReport({ db, admin: {}, jobId: "job1", deps: { keepWorkFiles: false } });
+    assert.equal(outcome.action, "ready", db.row.error);
+    for (const path of Object.values(mine)) assert.equal(existsSync(path), false, path);
+    assert.deepEqual([db.row.ordersFile, db.row.eventsFile, db.row.productsFile], [null, null, null]);
+    assert.equal(db.row.stage, STAGES.READY);
+  });
+
+  test("by default (development) the exports are kept for inspection", async () => {
+    const db = fakeDb({ ...files, params: request({ fields: ["orderName"] }) });
+    await generateReport({ db, admin: {}, jobId: "job1" });
+    assert.ok(existsSync(files.ordersFile));
+    assert.equal(db.row.ordersFile, files.ordersFile);
+  });
+
   test("a second trigger does not build the file again", async () => {
     const db = fakeDb({ ...files, params: request({ fields: ["orderName"] }) });
     let writes = 0;
@@ -338,7 +380,7 @@ describe("Refund Credit Report", () => {
 
     const sheet = (await open(db)).getWorksheet("Refund Credit Report");
     const headers = sheet.getRow(1).values.slice(1);
-    assert.deepEqual(headers, ["Order Name", "Event Date", "Original Order Date", "Sales Channel", "POS Location", "POS Staff", "Credit Amount", "Items Returned", "Return Reason"]);
+    assert.deepEqual(headers, ["Order Name", "Event Date", "Original Order Date", "Sales Channel", "POS Location", "POS Staff", "Credit Amount", "Items Returned", "Product Variant SKU", "Return Reason"]);
     const row = sheet.getRow(2);
     const at = (label) => row.getCell(headers.indexOf(label) + 1).value;
     assert.equal(at("Order Name"), "#3");
@@ -348,6 +390,7 @@ describe("Refund Credit Report", () => {
     assert.equal(at("POS Staff"), "Omar");
     assert.equal(at("Credit Amount"), 50);
     assert.equal(at("Items Returned"), "Jacket × 1");
+    assert.equal(at("Product Variant SKU"), "J1");
     assert.equal(at("Return Reason"), "Too big");
     const total = sheet.getRow(3);
     assert.equal(total.getCell(1).value, "Total");
@@ -403,8 +446,8 @@ describe("Refund Credit Report", () => {
 
 describe("buildReportColumns", () => {
   test("a report without field selection always has all its columns", () => {
-    assert.equal(buildReportColumns("refundCredit", undefined).length, 9);
-    assert.equal(buildReportColumns("refundCredit", ["orderName"]).length, 9);
+    assert.equal(buildReportColumns("refundCredit", undefined).length, 10);
+    assert.equal(buildReportColumns("refundCredit", ["orderName"]).length, 10);
   });
   test("keeps config order and drops unavailable fields", () => {
     assert.deepEqual(buildReportColumns("generalSales", ["totalSales", "posStaff", "sku"]).map((c) => c.key), ["posStaff", "sku", "totalSales"]);

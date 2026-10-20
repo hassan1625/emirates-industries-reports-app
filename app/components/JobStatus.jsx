@@ -59,7 +59,9 @@ export function RecentReports({
       ? "success"
       : job.stage === STAGES.FAILED
         ? "critical"
-        : "info";
+        : job.stage === STAGES.EXPIRED
+          ? "neutral"
+          : "info";
   return (
     <s-section heading={heading}>
       {children && <div style={FILTER_STYLE}>{children}</div>}

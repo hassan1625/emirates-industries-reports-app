@@ -19,8 +19,11 @@ const amount = (set) => Number(set?.shopMoney?.amount ?? 0);
 
 export const creditColumns = () => getReportFields(REPORT).map(({ key, label, type, width }) => ({ key, label, type, width }));
 
-// "Jacket × 2; Trouser × 1" for the items returned in the same event.
-function itemsReturned(order, agreement) {
+// The items returned in the same event: "Jacket × 2; Trouser × 1" and, in the
+// same order, their SKUs "JKT-1; TRS-4" so two sizes of one product can be told
+// apart. A returned item with no SKU shows "(no SKU)"; one no longer on the
+// order shows "(item no longer on the order)".
+function returnedItems(order, agreement) {
   const byLine = new Map();
   for (const sale of agreement.sales ?? []) {
     if (sale.lineType !== "PRODUCT" || sale.actionType === "ORDER") continue;
@@ -28,8 +31,12 @@ function itemsReturned(order, agreement) {
     if (!quantity) continue;
     byLine.set(sale.lineItem?.id, (byLine.get(sale.lineItem?.id) ?? 0) + quantity);
   }
-  const titles = new Map(order.lineItems.map((line) => [line.id, line.title]));
-  return [...byLine].map(([lineId, quantity]) => `${titles.get(lineId) ?? "(item no longer on the order)"} × ${quantity}`).join("; ");
+  const lines = new Map(order.lineItems.map((line) => [line.id, line]));
+  const items = [...byLine].map(([lineId, quantity]) => ({ line: lines.get(lineId), quantity }));
+  return {
+    items: items.map(({ line, quantity }) => `${line?.title ?? "(item no longer on the order)"} × ${quantity}`).join("; "),
+    skus: items.map(({ line }) => (line ? line.sku || "(no SKU)" : "(item no longer on the order)")).join("; "),
+  };
 }
 
 // Rows of one order for the credits booked inside [startMs, endMs].
@@ -52,6 +59,7 @@ export function creditOrderRows(order, agreements, { mappings, staffByOrder, sta
       if (reason && !reasons.includes(reason)) reasons.push(reason);
     }
 
+    const returned = returnedItems(order, agreement);
     const row = {
       values: {
         orderName: order.name ?? null,
@@ -61,7 +69,8 @@ export function creditOrderRows(order, agreements, { mappings, staffByOrder, sta
         posLocation: location.locationName,
         posStaff: staff,
         creditAmount: credit,
-        itemsReturned: itemsReturned(order, agreement) || null,
+        itemsReturned: returned.items || null,
+        sku: returned.skus || null,
         returnReason: reasons.length ? reasons.join("; ") : null,
       },
       meta: { orderId: order.id, sourceName: order.sourceName ?? null, locationId: location.locationId, posStaff: staff, happenedAt: agreement.happenedAt },

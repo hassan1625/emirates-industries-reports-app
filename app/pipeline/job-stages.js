@@ -13,6 +13,7 @@ export const STAGES = Object.freeze({
   DATA_READY: "DATA_READY", // all three files on disk; the report file is built next
   GENERATING: "GENERATING", // the XLSX is being written
   READY: "READY", // the report file exists and can be downloaded
+  EXPIRED: "EXPIRED", // the file was deleted after the retention period
   FAILED: "FAILED",
 });
 
@@ -61,6 +62,7 @@ export const STAGE_INFO = Object.freeze({
   [STAGES.DATA_READY]: { label: "Building the report", detail: "All data has been received; creating the Excel file.", progress: 92, terminal: false },
   [STAGES.GENERATING]: { label: "Building the report", detail: "Creating the Excel file.", progress: 96, terminal: false },
   [STAGES.READY]: { label: "Report ready", detail: "Your report file is ready.", progress: 100, terminal: true },
+  [STAGES.EXPIRED]: { label: "Expired", detail: "This report was removed after the retention period. Generate it again.", progress: 0, terminal: true },
   [STAGES.FAILED]: { label: "Failed", detail: "The report could not be prepared.", progress: 0, terminal: true },
 });
 

@@ -44,7 +44,7 @@ test("building: a spinner on the current step, finished steps ticked, elapsed ti
 });
 
 test("every stage of a running job belongs to exactly one step", () => {
-  const running = Object.values(STAGES).filter((stage) => ![STAGES.READY, STAGES.FAILED].includes(stage));
+  const running = Object.values(STAGES).filter((stage) => ![STAGES.READY, STAGES.FAILED, STAGES.EXPIRED].includes(stage));
   for (const stage of running) assert.ok(stepOfStage(stage) >= 0, stage);
   assert.equal(stepOfStage(STAGES.PENDING), 0);
   assert.equal(stepOfStage(STAGES.PRODUCTS_DOWNLOADING), 2);
@@ -82,6 +82,13 @@ test("failed: plain message, the reason, and Try again", () => {
   assert.match(html, /Try again/);
   assert.match(html, /saved/);
   assert.doesNotMatch(html, /<s-spinner/);
+});
+
+test("expired: says the file was removed and how to get it again; no Download", () => {
+  const html = render(ReportStatusCard, { status: status(STAGES.EXPIRED), file: null, onDownload: () => {} });
+  assert.match(html, /This report has expired/);
+  assert.match(html, /Generate report/);
+  assert.doesNotMatch(html, /Download Excel file|<s-spinner/);
 });
 
 test("RequestSummary lists range, filters and the chosen fields by name", () => {
@@ -130,6 +137,12 @@ test("the list scrolls inside its section, the tabs sit apart from it, and a row
   assert.match(html, /<div style="margin-bottom:12px"><s-clickable-chip>All 15/);
   assert.match(html, /<div style="display:flex;gap:8px;white-space:nowrap">/);
   assert.equal((html.match(/<s-table-row>/g) ?? []).length, 15);
+});
+
+test("an expired report is listed without a Download button", () => {
+  const html = render(RecentReports, { jobs: [job({ stage: STAGES.EXPIRED, label: "Expired", file: null })], onDownload: () => {} });
+  assert.match(html, /<s-badge tone="neutral">Expired<\/s-badge>/);
+  assert.doesNotMatch(html, />Download</);
 });
 
 test("Recent reports renders nothing when there are none", () => {

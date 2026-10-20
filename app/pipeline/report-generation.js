@@ -19,7 +19,10 @@ import { loadMappings } from "./location-mapping.js";
 import { buildRowFilter } from "./report-filter.js";
 import { fetchStaffByOrder } from "./staff.js";
 import { parseLocalDateTime, writeReportXlsx } from "./report-xlsx.js";
-import { jobReportPath, toLocalUrl } from "./storage.js";
+import { jobReportPath } from "./storage.js";
+import { reportFileName } from "./report-file.js";
+import { reportStore } from "./report-store.js";
+import { removeWorkFiles, shouldKeepWorkFiles } from "./work-files.js";
 import { STAGES } from "./job-stages.js";
 
 export const GENERATED_REPORT_TYPES = Object.freeze(["generalSales", "refundCredit"]);
@@ -109,6 +112,8 @@ export async function generateReport({ db, admin, jobId, deps = {} }) {
   const pathFor = deps.reportPath ?? jobReportPath;
   const now = deps.now ?? (() => new Date());
   const fetchStaff = deps.fetchStaff ?? fetchStaffByOrder;
+  const save = deps.save ?? ((args) => reportStore().save(args));
+  const keepWorkFiles = deps.keepWorkFiles ?? shouldKeepWorkFiles();
 
   const job = await db.reportJob.findUnique({ where: { id: jobId } });
   if (!job) throw new Error(`No job ${jobId}`);
@@ -162,7 +167,13 @@ export async function generateReport({ db, admin, jobId, deps = {} }) {
       },
     });
 
-    await db.reportJob.update({ where: { id: job.id }, data: { stage: STAGES.READY, resultFileUrl: toLocalUrl(filePath), resultRows: rowCount, resultBytes: bytes, error: null } });
+    // Keep the finished file where downloads can reach it (S3 in production).
+    const resultFileUrl = await save({ jobId: job.id, localPath: filePath, fileName: reportFileName({ ...job, params: job.params }) });
+    await db.reportJob.update({ where: { id: job.id }, data: { stage: STAGES.READY, resultFileUrl, resultRows: rowCount, resultBytes: bytes, error: null } });
+
+    // The three exports are large working files; once the report exists they are
+    // not needed again (development keeps them for inspection).
+    if (!keepWorkFiles) await removeWorkFiles({ db, job }).catch((error) => console.error(`Could not remove the working files of job ${job.id}:`, error.message));
     return { action: "ready", rows: rowCount, bytes, seconds: (Date.now() - started) / 1000 };
   } catch (error) {
     await db.reportJob.update({ where: { id: job.id }, data: { stage: STAGES.FAILED, error: `Could not build the report file: ${error.message}` } });

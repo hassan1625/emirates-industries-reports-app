@@ -67,6 +67,16 @@ export default function ReportStatusCard({ status, file = null, onDownload, down
     );
   }
 
+  if (status.stage === STAGES.EXPIRED) {
+    return (
+      <s-section>
+        <s-banner tone="info" heading="This report has expired">
+          <s-text>Finished reports are kept for a limited time and then removed. Select Generate report to build it again with the same settings.</s-text>
+        </s-banner>
+      </s-section>
+    );
+  }
+
   if (status.stage === STAGES.READY && file?.rows === 0) {
     return (
       <s-section>

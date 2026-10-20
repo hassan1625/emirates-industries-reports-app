@@ -11,7 +11,7 @@ const order = {
   createdAt: "2026-08-25T13:18:16Z",
   sourceName: "pos",
   retailLocation: { id: "L1", name: "Al Garhoud" },
-  lineItems: [{ id: "I1", title: "Lab Coat" }, { id: "I2", title: "Trouser" }],
+  lineItems: [{ id: "I1", title: "Lab Coat", sku: "LAB-M" }, { id: "I2", title: "Trouser", sku: "TRS-10" }, { id: "I3", title: "Trouser", sku: "TRS-12" }, { id: "I4", title: "Belt", sku: null }],
   returns: [{ id: "R1", status: "CLOSED", returnLineItems: [{ quantity: 2, returnReasonDefinition: { name: "Too big" }, fulfillmentLineItem: { lineItem: { id: "I1" } } }, { quantity: 1, returnReasonDefinition: { name: "Changed my mind" }, fulfillmentLineItem: { lineItem: { id: "I2" } } }] }],
 };
 const exchange = { id: "A2", happenedAt: "2026-08-31T18:03:38Z", reason: "RETURN", return: { id: "R1" }, sales: [sale("RETURN", "PRODUCT", "I1", -2, -113.4), sale("RETURN", "PRODUCT", "I2", -1, -50), sale("ORDER", "PRODUCT", "I2", 1, 20), sale("RETURN", "ADJUSTMENT", null, null, 113.4)] };
@@ -30,6 +30,7 @@ describe("creditOrderRows", () => {
       posStaff: "Cashier01 Garhoud",
       creditAmount: 113.4,
       itemsReturned: "Lab Coat × 2; Trouser × 1", // the replacement (an ORDER sale) is not a returned item
+      sku: "LAB-M; TRS-10",
       returnReason: "Too big; Changed my mind",
     });
   });
@@ -69,9 +70,25 @@ describe("creditOrderRows", () => {
     assert.equal(row.values.salesChannel, "Online Store");
   });
 
+  test("the SKU column lines up with Items Returned, so two sizes of one product can be told apart", () => {
+    const sizes = { ...exchange, sales: [sale("RETURN", "PRODUCT", "I2", -1, -50), sale("RETURN", "PRODUCT", "I3", -1, -50), sale("RETURN", "ADJUSTMENT", null, null, 10)] };
+    const [row] = creditOrderRows(order, [sizes], context);
+    assert.equal(row.values.itemsReturned, "Trouser × 1; Trouser × 1");
+    assert.equal(row.values.sku, "TRS-10; TRS-12");
+  });
+
+  test("a returned item with no SKU says so, and a credit with no returned items has no SKU", () => {
+    const belt = { ...exchange, sales: [sale("RETURN", "PRODUCT", "I4", -1, -9), sale("RETURN", "ADJUSTMENT", null, null, 9)] };
+    assert.equal(creditOrderRows(order, [belt], context)[0].values.sku, "(no SKU)");
+    const lone = { ...exchange, return: undefined, sales: [sale("RETURN", "ADJUSTMENT", null, null, 7)] };
+    assert.equal(creditOrderRows(order, [lone], context)[0].values.sku, null);
+  });
+
   test("a returned item no longer on the order is still named", () => {
     const ghost = { ...exchange, sales: [sale("RETURN", "PRODUCT", "GONE", -1, -9), sale("RETURN", "ADJUSTMENT", null, null, 9)] };
-    assert.equal(creditOrderRows(order, [ghost], context)[0].values.itemsReturned, "(item no longer on the order) × 1");
+    const [row] = creditOrderRows(order, [ghost], context);
+    assert.equal(row.values.itemsReturned, "(item no longer on the order) × 1");
+    assert.equal(row.values.sku, "(item no longer on the order)");
   });
 });
 
@@ -98,7 +115,9 @@ describe("buildCreditRows and summarizeCredits", () => {
     assert.deepEqual(summarizeCredits([]), { count: 0, orders: 0, total: 0, byChannel: [] });
   });
 
-  test("the columns come from the config, nine of them", () => {
-    assert.equal(creditColumns().length, 9);
+  test("the columns come from the config, ten of them, with the SKU right after Items Returned", () => {
+    const keys = creditColumns().map((c) => c.key);
+    assert.equal(keys.length, 10);
+    assert.equal(keys[keys.indexOf("itemsReturned") + 1], "sku");
   });
 });
