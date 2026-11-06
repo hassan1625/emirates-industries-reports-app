@@ -52,7 +52,8 @@ test("loadFilterOptions reads locations and collections and adds the channels", 
     }),
   };
   const options = await loadFilterOptions(admin);
-  assert.deepEqual(Object.keys(options).sort(), ["collection", "posLocation", "posStaff", "salesChannel"]);
+  assert.deepEqual(Object.keys(options).sort(), ["collection", "posLocation", "posStaff", "salesChannel", "tag", "zeroStock"]);
+  assert.deepEqual(options.tag, []); // this fake answers no tags; a failing tag lookup never breaks the screen
   assert.deepEqual(options.posStaff, []); // no shop given: no staff lookup
   assert.equal(options.salesChannel.length, 4);
   assert.deepEqual(options.posLocation, [{ value: "L1", label: "Al Ain" }]);

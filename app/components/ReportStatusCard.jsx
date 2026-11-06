@@ -1,16 +1,16 @@
 // The report status card at the top of a report screen. One component for every
 // state: nothing requested yet, building (named steps and elapsed time), ready
 // (file details and Download), ready with no rows, and failed (with Try again).
-import { PROGRESS_STEPS, STAGES, isTerminalStage, stepOfStage } from "../pipeline/job-stages";
+import { STAGES, isTerminalStage, progressSteps, stepOfStage } from "../pipeline/job-stages";
 import { formatBytes } from "../pipeline/report-file";
 
 const clock = (seconds) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 const elapsedSeconds = (from, to) => Math.max(0, Math.round((to - from) / 1000));
 
-function Steps({ current }) {
+function Steps({ current, steps }) {
   return (
     <s-stack gap="small-200">
-      {PROGRESS_STEPS.map((step, index) => {
+      {steps.map((step, index) => {
         const state = index < current ? "done" : index === current ? "current" : "todo";
         return (
           <s-stack key={step.label} direction="inline" gap="small" alignItems="center">
@@ -120,17 +120,18 @@ export default function ReportStatusCard({ status, file = null, onDownload, down
     );
   }
 
-  const current = Math.max(0, stepOfStage(status.stage));
+  const steps = progressSteps(status.reportType);
+  const current = Math.max(0, stepOfStage(status.stage, status.reportType));
   return (
     <s-section>
       <s-stack gap="base">
         <s-stack direction="inline" justifyContent="space-between" alignItems="center">
           <s-text type="strong">
-            Building your report <s-text color="subdued">Step {current + 1} of {PROGRESS_STEPS.length}</s-text>
+            Building your report <s-text color="subdued">Step {current + 1} of {steps.length}</s-text>
           </s-text>
           <s-text color="subdued">{terminal ? "" : `Elapsed ${clock(elapsedSeconds(created, now))}`}</s-text>
         </s-stack>
-        <Steps current={current} />
+        <Steps current={current} steps={steps} />
         <s-banner tone="info">This can take several minutes. You can leave this page; your report keeps building and will be listed under Recent reports when you come back.</s-banner>
       </s-stack>
     </s-section>

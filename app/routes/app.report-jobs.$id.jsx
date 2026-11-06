@@ -20,7 +20,7 @@ export const loader = async ({ request, params }) => {
   const info = STAGE_INFO[job.stage] ?? STAGE_INFO[STAGES.FAILED];
   const requested = parseParams(job.params);
   const result = {
-    job: { id: job.id, stage: job.stage, label: info.label, detail: info.detail, progress: info.progress, error: job.error, createdAt: job.createdAt, updatedAt: job.updatedAt },
+    job: { id: job.id, reportType: job.reportType, stage: job.stage, label: info.label, detail: info.detail, progress: info.progress, error: job.error, createdAt: job.createdAt, updatedAt: job.updatedAt },
     file: describeReportFile(job),
     request: { reportKey: requested.reportKey, range: requested.localRange ?? null, filters: requested.filters ?? {}, fields: requested.fields ?? null },
   };

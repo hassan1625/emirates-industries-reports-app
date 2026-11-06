@@ -133,6 +133,18 @@ export function groupAgreementOrders(lines) {
   });
 }
 
+// Inventory items with their levels attached; each level's `quantities` list
+// stays inlined on its line. Items without a level still come through.
+export function inventoryChildKey(line) {
+  if (gidType(line.id) === "InventoryLevel") return "levels";
+  if (Object.keys(line).length === 1 && line.__parentId) return null;
+  throw new Error(`Unexpected inventory child line: ${JSON.stringify(Object.keys(line))}`);
+}
+
+export function groupInventory(lines) {
+  return groupBulkLines(lines, { childKey: inventoryChildKey, rootDefaults: { levels: [] } });
+}
+
 export function groupProducts(lines) {
   return groupBulkLines(lines, { childKey: productChildKey, rootDefaults: { collections: [], variants: [] } });
 }
@@ -167,6 +179,15 @@ export async function verifyProductsFile(filePath) {
     stats.products += 1;
     stats.variants += product.variants.length;
     stats.collections += product.collections.length;
+  }
+  return stats;
+}
+
+export async function verifyInventoryFile(filePath) {
+  const stats = { items: 0, levels: 0 };
+  for await (const item of groupInventory(readJsonl(filePath))) {
+    stats.items += 1;
+    stats.levels += item.levels.length;
   }
   return stats;
 }

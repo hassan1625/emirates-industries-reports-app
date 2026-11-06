@@ -41,24 +41,37 @@ const columnWidth = (column) => column.width ?? Math.max(column.label.length + 3
 // summary  optional extra sheet: [{ label, value, type? }] ("currency" and
 //          "number" values are numbers, anything else text); a row with no
 //          value is a bold heading
-// request  { reportLabel, generatedAt: Date (store wall-clock, like Order Date), range: { from, to, timeZone },
+// title    optional [{ label, value }] rows written above the table (e.g. the stock
+//          report's fixed Location Name), followed by a blank row
+// highlight optional { column: key, value, color? } — the whole data row turns
+//          red when that column is at or below the value (conditional
+//          formatting, so it keeps working when someone edits a number)
+// request  { reportLabel, period?: text that replaces the date range line, generatedAt: Date (store wall-clock, like Order Date), range: { from, to, timeZone },
 //            filters: [{ label, values: string[] }], notes: string[] } for the
 //            "Request" sheet. Optional.
 // Resolves to { rows, bytes } (rows excludes the header).
-export async function writeReportXlsx({ filePath, sheetName, columns, rows, footer, summary, request }) {
+export async function writeReportXlsx({ filePath, sheetName, columns, rows, footer, summary, request, title, highlight }) {
   await ensureParentDir(filePath);
   const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({ filename: filePath, useStyles: true, useSharedStrings: false });
-  const sheet = workbook.addWorksheet(sheetName.slice(0, 31), { views: [{ state: "frozen", ySplit: 1 }] });
+  const titleRows = title?.length ? title.length + 1 : 0; // the title lines and a blank one
+  const headerRow = titleRows + 1;
+  const sheet = workbook.addWorksheet(sheetName.slice(0, 31), { views: [{ state: "frozen", ySplit: headerRow }] });
 
   sheet.columns = columns.map((column) => ({
-    header: column.label,
     key: column.key,
     width: columnWidth(column),
     style: { numFmt: NUMBER_FORMATS[column.type] ?? NUMBER_FORMATS.string },
   }));
-  sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: columns.length } };
+  sheet.autoFilter = { from: { row: headerRow, column: 1 }, to: { row: headerRow, column: columns.length } };
 
-  const header = sheet.getRow(1);
+  for (const { label, value } of title ?? []) {
+    const line = sheet.addRow([label, value]);
+    line.getCell(1).font = { bold: true };
+    line.commit();
+  }
+  if (titleRows) sheet.addRow([]).commit();
+
+  const header = sheet.addRow(columns.map((column) => column.label));
   header.font = { bold: true };
   header.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE8EEF4" } };
   header.alignment = { vertical: "middle" };
@@ -69,6 +82,15 @@ export async function writeReportXlsx({ filePath, sheetName, columns, rows, foot
     if (count + 1 >= MAX_SHEET_ROWS) throw new Error(`The report has more rows than one Excel sheet can hold (${MAX_SHEET_ROWS - 1}); choose a shorter date range`);
     sheet.addRow(columns.map((column) => toCellValue(values[column.key], column.type))).commit();
     count += 1;
+  }
+  if (highlight && count > 0) {
+    const letter = (n) => { let name = ""; for (let i = n; i > 0; i = Math.floor((i - 1) / 26)) name = String.fromCharCode(65 + ((i - 1) % 26)) + name; return name; };
+    const at = letter(columns.findIndex((column) => column.key === highlight.column) + 1);
+    const first = headerRow + 1;
+    sheet.addConditionalFormatting({
+      ref: `A${first}:${letter(columns.length)}${headerRow + count}`,
+      rules: [{ type: "expression", formulae: [`$${at}${first}<=${highlight.value}`], priority: 1, style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: highlight.color ?? "FFF8C4C4" } }, font: { color: { argb: "FF9C0006" } } } }],
+    });
   }
   if (footer) {
     const total = sheet.addRow(columns.map((column) => toCellValue(footer[column.key], column.type)));
@@ -99,7 +121,7 @@ export async function writeReportXlsx({ filePath, sheetName, columns, rows, foot
     };
     add("Report", request.reportLabel);
     add("Generated (store time)", request.generatedAt);
-    add("Period", request.range ? `${request.range.from} to ${request.range.to} (${request.range.timeZone})` : "");
+    add("Period", request.period ?? (request.range ? `${request.range.from} to ${request.range.to} (${request.range.timeZone})` : ""));
     for (const filter of request.filters ?? []) add(filter.label, filter.values.join(", "));
     if (!(request.filters ?? []).length) add("Filters", "None (everything)");
     add("Columns", columns.map((column) => column.label).join(", "));

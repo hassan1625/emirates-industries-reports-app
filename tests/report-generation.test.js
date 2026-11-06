@@ -339,7 +339,7 @@ describe("generateReport", () => {
     const db = fakeDb({ ...files, reportType: "debugPipeline" });
     assert.equal((await generateReport({ db, jobId: "job1" })).action, "not-supported");
     assert.equal(db.row.stage, STAGES.DATA_READY);
-    assert.deepEqual(GENERATED_REPORT_TYPES, ["generalSales", "refundCredit"]);
+    assert.deepEqual(GENERATED_REPORT_TYPES, ["generalSales", "refundCredit", "stockByLocation"]);
   });
 
   test("an unknown job id is an error", async () => {

@@ -4,7 +4,7 @@
 // (advanceJob) the webhook uses. All state moves are atomic claims on `stage`
 // (plus `updatedAt` where a stage has no other guard), so a recovery pass can
 // never double-run a step that a webhook, or another pass, already took.
-import { BULK_ID_COLUMN, DOWNLOADING_STAGE, EXPORT_LABEL, NEXT_EXPORT, RUNNING_STAGE, STAGES, exportOfStage } from "./job-stages.js";
+import { BULK_ID_COLUMN, DOWNLOADING_STAGE, EXPORT_LABEL, READY_STAGE, RUNNING_STAGE, STAGES, exportOfStage, firstExport, nextExport } from "./job-stages.js";
 import { fetchBulkOperation } from "./bulk-finish.js";
 import { startNextExport } from "./job-chain.js";
 import { advanceAndGenerate } from "./job-runner.js";
@@ -42,6 +42,9 @@ const UNFINISHED = [
   STAGES.EVENTS_READY,
   STAGES.PRODUCTS_RUNNING,
   STAGES.PRODUCTS_DOWNLOADING,
+  STAGES.PRODUCTS_READY,
+  STAGES.INVENTORY_RUNNING,
+  STAGES.INVENTORY_DOWNLOADING,
   STAGES.DATA_READY,
   STAGES.GENERATING,
 ];
@@ -74,7 +77,7 @@ export async function recoverStuckJobs({ db, getAdmin, now = new Date(), config 
 
     try {
       if (job.stage === STAGES.PENDING) {
-        record(age >= cfg.pendingStaleAfterMs ? await fail(db, job, "Orders export was never started") : "waiting");
+        record(age >= cfg.pendingStaleAfterMs ? await fail(db, job, `The ${EXPORT_LABEL[firstExport(job.reportType)]} export was never started`) : "waiting");
         continue;
       }
 
@@ -104,18 +107,18 @@ export async function recoverStuckJobs({ db, getAdmin, now = new Date(), config 
 
       // An export's file is on disk but the next export never started (Shopify
       // was busy, or the process died in between): start it.
-      if (job.stage === STAGES.ORDERS_READY || job.stage === STAGES.EVENTS_READY) {
+      if (Object.values(READY_STAGE).includes(job.stage)) {
         const which = exportOfStage(job.stage);
         if (age < cfg.nextExportRetryAfterMs) {
           record("waiting");
           continue;
         }
         if (sinceCreated > cfg.nextExportRetryUntilMs) {
-          record(await fail(db, job, `The ${EXPORT_LABEL[NEXT_EXPORT[which]]} export could not be started: ${job.error ?? "unknown error"}`));
+          record(await fail(db, job, `The ${EXPORT_LABEL[nextExport(job.reportType, which)]} export could not be started: ${job.error ?? "unknown error"}`));
           continue;
         }
         // Take the retry by bumping updatedAt, so a second pass backs off.
-        if (!(await claim(db, job, { error: `Retrying the ${EXPORT_LABEL[NEXT_EXPORT[which]]} export` }))) {
+        if (!(await claim(db, job, { error: `Retrying the ${EXPORT_LABEL[nextExport(job.reportType, which)]} export` }))) {
           record("skipped");
           continue;
         }

@@ -18,7 +18,9 @@ export default function MultiFilter({ filter, options, values, onValues, error, 
   const needle = query.trim().toLowerCase();
   const matches = needle ? options.filter((option) => option.label.toLowerCase().includes(needle)) : options;
   const showList = open || needle.length > 0;
-  const toggle = (value, on) => onValues(on ? [...new Set([...values, value])] : values.filter((v) => v !== value));
+  // A singleSelect filter keeps at most one value: choosing another replaces it.
+  const single = filter.type === "singleSelect";
+  const toggle = (value, on) => onValues(on ? (single ? [value] : [...new Set([...values, value])]) : values.filter((v) => v !== value));
 
   return (
     <s-stack gap="small-200">

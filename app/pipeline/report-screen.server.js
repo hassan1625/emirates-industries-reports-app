@@ -43,8 +43,8 @@ export async function reportScreenAction({ request, reportKey }) {
       admin,
       shop: session.shop,
       reportType: reportKey,
-      range: { start: range.start, end: range.end },
-      params: { reportKey, filters, filterSummary: describeFilters(reportKey, filters, options), fields, localRange: { from: range.from, to: range.to, timeZone: range.timeZone } },
+      range: range ? { start: range.start, end: range.end } : undefined,
+      params: { reportKey, filters, filterSummary: describeFilters(reportKey, filters, options), fields, ...(range ? { localRange: { from: range.from, to: range.to, timeZone: range.timeZone } } : {}) },
     });
     return { errors: {}, jobId: job.id };
   } catch (error) {

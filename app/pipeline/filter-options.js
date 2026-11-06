@@ -17,6 +17,9 @@ const OPTIONS_QUERY = `#graphql
     collections(first: 250) { edges { node { id title } } }
   }`;
 
+const TAGS_QUERY = `#graphql
+  query reportTagOptions { productTags(first: 250) { edges { node } } }`;
+
 const byLabel = (a, b) => a.label.localeCompare(b.label);
 
 export const channelOptions = (names = SALES_CHANNEL_NAMES) => Object.entries(names).map(([value, label]) => ({ value, label })).sort(byLabel);
@@ -56,13 +59,30 @@ export async function loadStaffOptions(admin, shop, { now = Date.now(), fetchNam
   }
 }
 
+// The product tags of the store (up to 250), for the Stock Report's Tag filter. A
+// failure leaves the filter with no choices rather than breaking the screen.
+export async function loadTagOptions(admin) {
+  try {
+    const response = await admin.graphql(TAGS_QUERY);
+    const { data, errors } = await response.json();
+    if (errors?.length) throw new Error(JSON.stringify(errors));
+    return data.productTags.edges.map((edge) => edge.node).filter(Boolean).sort((a, b) => a.localeCompare(b)).map((tag) => ({ value: tag, label: tag }));
+  } catch (error) {
+    console.error("Product tag options could not be loaded:", error.message);
+    return [];
+  }
+}
+
+// The one choice of the Stock Report's zero-stock filter; leaving it empty shows those items.
+export const zeroStockOptions = () => [{ value: "hide", label: "Hide items with no stock" }];
+
 // Options for every select filter, keyed by filter key.
 export async function loadFilterOptions(admin, shop) {
   const response = await admin.graphql(OPTIONS_QUERY);
   const { data, errors } = await response.json();
   if (errors?.length) throw new Error(`Filter options lookup failed: ${JSON.stringify(errors)}`);
   const nodes = (connection) => connection.edges.map((edge) => edge.node);
-  return { salesChannel: channelOptions(), ...toOptions({ locations: nodes(data.locations), collections: nodes(data.collections) }), posStaff: shop ? await loadStaffOptions(admin, shop) : [] };
+  return { salesChannel: channelOptions(), ...toOptions({ locations: nodes(data.locations), collections: nodes(data.collections) }), posStaff: shop ? await loadStaffOptions(admin, shop) : [], tag: await loadTagOptions(admin), zeroStock: zeroStockOptions() };
 }
 
 // { filterKey: [values] }, for server-side validation of a submitted request.

@@ -4,8 +4,8 @@ import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { authenticate } from "../shopify.server";
 import { REPORTS } from "../config";
 
-// Reports with a screen. Phase 2 reports are added here as their screens are built.
-const availableReports = Object.values(REPORTS).filter((report) => report.phase === 1);
+// Reports with a screen: all of Phase 1, and each Phase 2 report once its screen is built.
+const availableReports = Object.values(REPORTS).filter((report) => report.phase === 1 || report.hasScreen);
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);

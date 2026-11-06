@@ -151,14 +151,14 @@ describe("working files", () => {
     assert.equal(shouldKeepWorkFiles({ NODE_ENV: "production", REPORT_KEEP_WORK_FILES: "on" }), true);
   });
 
-  test("removeWorkFiles deletes all three exports and forgets their paths; a missing file is fine", async () => {
+  test("removeWorkFiles deletes every export and forgets their paths; a missing file is fine", async () => {
     const removed = [];
     const updates = [];
     const db = { reportJob: { update: async (args) => updates.push(args) } };
     const remove = async (path) => { removed.push(path); if (path === "/gone/events.jsonl") throw Object.assign(new Error("gone"), { code: "ENOENT" }); };
     await removeWorkFiles({ db, job: { id: "job1", ordersFile: "/x/orders.jsonl", eventsFile: "/gone/events.jsonl", productsFile: "/x/products.jsonl" }, remove });
     assert.deepEqual(removed, ["/x/orders.jsonl", "/gone/events.jsonl", "/x/products.jsonl"]);
-    assert.deepEqual(updates, [{ where: { id: "job1" }, data: { ordersFile: null, eventsFile: null, productsFile: null } }]);
+    assert.deepEqual(updates, [{ where: { id: "job1" }, data: { ordersFile: null, eventsFile: null, productsFile: null, inventoryFile: null } }]);
   });
 
   test("any other deletion error is surfaced", async () => {

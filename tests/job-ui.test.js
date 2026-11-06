@@ -6,7 +6,9 @@ import { fileURLToPath } from "node:url";
 import { createServer } from "vite";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { PROGRESS_STEPS, STAGES, stepOfStage } from "../app/pipeline/job-stages.js";
+import { STAGES, progressSteps, stepOfStage } from "../app/pipeline/job-stages.js";
+
+const PROGRESS_STEPS = progressSteps("generalSales");
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 let vite;
@@ -45,11 +47,26 @@ test("building: a spinner on the current step, finished steps ticked, elapsed ti
 
 test("every stage of a running job belongs to exactly one step", () => {
   const running = Object.values(STAGES).filter((stage) => ![STAGES.READY, STAGES.FAILED, STAGES.EXPIRED].includes(stage));
-  for (const stage of running) assert.ok(stepOfStage(stage) >= 0, stage);
+  for (const stage of running) assert.ok(Math.max(stepOfStage(stage, "generalSales"), stepOfStage(stage, "stockByLocation")) >= 0, stage);
   assert.equal(stepOfStage(STAGES.PENDING), 0);
   assert.equal(stepOfStage(STAGES.PRODUCTS_DOWNLOADING), 2);
   assert.equal(stepOfStage(STAGES.GENERATING), 3);
-  for (const stage of running) assert.match(render(ReportStatusCard, { status: status(stage), now: CREATED }), /<s-spinner/, stage);
+  for (const stage of running) {
+    const reportType = stepOfStage(stage, "generalSales") >= 0 ? "generalSales" : "stockByLocation";
+    assert.match(render(ReportStatusCard, { status: status(stage, { reportType }), now: CREATED }), /<s-spinner/, stage);
+  }
+});
+
+test("a stock job lists its own three steps", () => {
+  const steps = progressSteps("stockByLocation");
+  assert.equal(steps.length, 3);
+  assert.equal(stepOfStage(STAGES.PENDING, "stockByLocation"), 0);
+  assert.equal(stepOfStage(STAGES.PRODUCTS_READY, "stockByLocation"), 0);
+  assert.equal(stepOfStage(STAGES.INVENTORY_RUNNING, "stockByLocation"), 1);
+  assert.equal(stepOfStage(STAGES.GENERATING, "stockByLocation"), 2);
+  const html = render(ReportStatusCard, { status: status(STAGES.INVENTORY_RUNNING, { reportType: "stockByLocation" }), now: CREATED });
+  assert.match(html, /Step 2 of 3/);
+  for (const step of steps) assert.ok(html.includes(step.label), step.label);
 });
 
 test("ready: file name, size, rows, how long it took and a Download button", () => {

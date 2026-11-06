@@ -6,6 +6,7 @@
 // handler is idempotent in the sense that it only reads, and the job-state
 // chaining that reacts to it (Step 15) must tolerate repeats. A polling
 // fallback (Step 16) covers dropped deliveries.
+import { BULK_ID_COLUMN, EXPORTS } from "./job-stages.js";
 
 export const BULK_OPERATION_QUERY = `#graphql
   query bulkOperationById($id: ID!) {
@@ -38,21 +39,21 @@ export async function fetchBulkOperation(admin, id) {
 //
 // Resolves to { handled: false, reason } when the operation is not one of our
 // jobs, otherwise { handled: true, job, which, operation }, where `which` says
-// whether it was the orders, events or products export. Throws on a failed lookup
+// which export it was (orders, events, products or inventory). Throws on a failed lookup
 // so the route answers 5xx and Shopify retries the delivery.
 export async function handleBulkOperationsFinish({ shop, payload, admin, db, onFinished }) {
   const id = payload?.admin_graphql_api_id;
   if (!id) return { handled: false, reason: "missing-operation-id" };
 
   const job = await db.reportJob.findFirst({
-    where: { shop, OR: [{ ordersBulkOpId: id }, { eventsBulkOpId: id }, { productsBulkOpId: id }] },
+    where: { shop, OR: [{ ordersBulkOpId: id }, { eventsBulkOpId: id }, { productsBulkOpId: id }, { inventoryBulkOpId: id }] },
   });
   if (!job) return { handled: false, reason: "unknown-operation", id };
 
   const operation = await fetchBulkOperation(admin, id);
   if (!operation) throw new Error(`Shopify returned no BulkOperation for ${id}`);
 
-  const result = { handled: true, job, which: job.ordersBulkOpId === id ? "orders" : job.eventsBulkOpId === id ? "events" : "products", operation };
+  const result = { handled: true, job, which: EXPORTS.find((name) => job[BULK_ID_COLUMN[name]] === id), operation };
   if (onFinished) await onFinished(result);
   return result;
 }

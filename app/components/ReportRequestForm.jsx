@@ -133,7 +133,7 @@ export default function ReportRequestForm({ reportKey, options, defaults, errors
       <div slot="aside" style={STICKY}>
         <s-section heading="Summary">
           <s-stack gap="small">
-            <SummaryRow label="Dates" value={`${from} to ${to}`} />
+            {dateFilter && <SummaryRow label="Dates" value={`${from} to ${to}`} />}
             {selectFilters.map((filter) => (
               <SummaryRow key={filter.key} label={filter.label} value={summarize(filter)} />
             ))}

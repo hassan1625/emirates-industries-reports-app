@@ -554,6 +554,31 @@ async function runProbes(admin) {
   return results;
 }
 
+// Dev-only: the stock records of one SKU INCLUDING inactive ones, and every location with
+// its active flag, to explain a difference between the Stock Report and Shopify's analytics.
+const INSPECT_STOCK_QUERY = `#graphql
+  query inspectStock($q: String!) {
+    inventoryItems(first: 3, query: $q) {
+      edges { node { id sku inventoryLevels(first: 50, includeInactive: true) { edges { node { isActive location { name isActive } quantities(names: ["on_hand", "available"]) { name quantity } } } } } }
+    }
+    locations(first: 50, includeInactive: true) { edges { node { name isActive isFulfillmentService } } }
+  }`;
+
+async function inspectStock(admin, sku) {
+  const response = await admin.graphql(INSPECT_STOCK_QUERY, { variables: { q: `sku:${sku}` } });
+  const { data, errors } = await response.json();
+  if (errors?.length) throw new Error(JSON.stringify(errors));
+  const quantity = (level, name) => level.quantities.find((q) => q.name === name)?.quantity;
+  return {
+    items: data.inventoryItems.edges.map(({ node }) => ({
+      id: node.id,
+      sku: node.sku,
+      levels: node.inventoryLevels.edges.map(({ node: level }) => ({ location: level.location.name, levelActive: level.isActive, locationActive: level.location.isActive, onHand: quantity(level, "on_hand"), available: quantity(level, "available") })),
+    })),
+    locations: data.locations.edges.map(({ node }) => `${node.name}${node.isActive ? "" : " (INACTIVE)"}${node.isFulfillmentService ? " (fulfillment service)" : ""}`),
+  };
+}
+
 // Dev-only: everything Shopify holds about one order's refunds, adjustments and
 // exchanges, to explain a difference between our figures and Shopify's.
 const INSPECT_ORDER_QUERY = `#graphql
@@ -858,6 +883,14 @@ export const action = async ({ request }) => {
     }
   }
 
+  if (form.get("intent") === "inspectStock") {
+    try {
+      return { inspected: await inspectStock(admin, String(form.get("sku") || "").trim()), error: null };
+    } catch (error) {
+      return { inspected: null, error: error.message };
+    }
+  }
+
   if (form.get("intent") === "checks") {
     try {
       return { checks: await runDataChecks(admin), error: null };
@@ -949,6 +982,10 @@ export default function DebugBulk() {
           <input type="text" name="orderName" placeholder="#23416" style={{ width: 90 }} />{" "}
           <button type="submit" name="intent" value="inspectOrder" disabled={busy}>
             Inspect order refunds
+          </button>{" "}
+          <input type="text" name="sku" defaultValue="BAG-RUSB-0001-001" placeholder="Item code to inspect" style={{ width: 170 }} />{" "}
+          <button type="submit" name="intent" value="inspectStock" disabled={busy}>
+            Inspect stock of SKU (incl. inactive)
           </button>
         </fetcher.Form>
         {result?.saved && <pre>{JSON.stringify(result.saved, null, 2)}</pre>}

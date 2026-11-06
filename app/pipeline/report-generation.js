@@ -10,7 +10,7 @@
 // a duplicate trigger (webhook plus recovery pass) builds the file once. A
 // process that dies mid-write leaves the job in GENERATING; the recovery pass
 // puts it back and builds again.
-import { defaultFieldKeys, getReport, getReportFields, hasFieldSelection } from "../config/index.js";
+import { defaultFieldKeys, getReport, getReportFields, getReportFilters, hasFieldSelection } from "../config/index.js";
 import { groupAgreementOrders, groupOrders, readJsonl } from "./bulk-file.js";
 import { buildCreditRows, summarizeCredits } from "./credit-rows.js";
 import { loadProductIndex } from "./join.js";
@@ -23,9 +23,10 @@ import { jobReportPath } from "./storage.js";
 import { reportFileName } from "./report-file.js";
 import { reportStore } from "./report-store.js";
 import { removeWorkFiles, shouldKeepWorkFiles } from "./work-files.js";
-import { STAGES } from "./job-stages.js";
+import { STAGES, exportSequence, FILE_COLUMN } from "./job-stages.js";
+import { buildStockRows, lowStockThreshold, stockColumns, summarizeStock } from "./stock-rows.js";
 
-export const GENERATED_REPORT_TYPES = Object.freeze(["generalSales", "refundCredit"]);
+export const GENERATED_REPORT_TYPES = Object.freeze(["generalSales", "refundCredit", "stockByLocation"]);
 
 const parseParams = (text) => {
   try {
@@ -40,13 +41,14 @@ const parseParams = (text) => {
 export function buildReportColumns(reportKey, fields) {
   const chosen = hasFieldSelection(reportKey) ? new Set(fields ?? defaultFieldKeys(reportKey)) : null;
   return getReportFields(reportKey)
-    .filter((field) => (!chosen || chosen.has(field.key)) && field.available !== false)
+    .filter((field) => (!chosen || chosen.has(field.key)) && field.available !== false && !field.severalLocationsOnly)
     .map(({ key, label, type, width }) => ({ key, label, type, width }));
 }
 
 const MONEY = { type: "currency" };
+const STOCK_REPORTS = new Set(["stockByLocation"]); // reports with no date range
 
-// Each builder gets { job, columns, range, filters, mappings, staffByOrder, keep }
+// Each builder gets { job, params, columns, range, filters, mappings, staffByOrder, keep }
 // and returns { rows, footer?, summary?, notes } (rows are objects keyed by column key).
 const BUILDERS = {
   async generalSales({ job, range, mappings, staffByOrder, keep }) {
@@ -104,6 +106,48 @@ const BUILDERS = {
       ],
     };
   },
+
+  // A snapshot of the stock levels at one or more locations: no date range, no staff.
+  async stockByLocation({ job, params, filters }) {
+    const { rows, locationNames, stats } = await buildStockRows(
+      { inventoryFile: job.inventoryFile, productsFile: job.productsFile },
+      { locationIds: filters.posLocation, collections: filters.collection, tags: filters.tag, hideZero: filters.zeroStock?.[0] === "hide" },
+    );
+    // One chosen location keeps the approved layout (its name as a header line); several or all
+    // locations get a Location Name column instead.
+    const chosenIds = filters.posLocation ?? [];
+    const several = chosenIds.length !== 1;
+    const chosen = (params.filterSummary ?? []).find((filter) => filter.key === "posLocation")?.values ?? locationNames;
+    const headerName = chosenIds.length === 0 ? "All locations" : chosen.join(", ");
+    const totals = summarizeStock(rows);
+    const threshold = lowStockThreshold();
+    const labelOf = (key) => getReportFilters("stockByLocation").find((filter) => filter.key === key).label;
+    return {
+      rows,
+      columns: stockColumns({ withLocation: several }),
+      title: [{ label: labelOf("posLocation"), value: headerName }],
+      highlight: { column: "stockAvailable", value: threshold },
+      period: "Stock levels at the time the report was built (not a date range)",
+      summary: [
+        { label: several ? "Stock rows listed (one per item and location)" : "Items listed", value: totals.items, type: "number" },
+        { label: `${several ? "Rows" : "Items"} with ${threshold} or fewer available`, value: totals.low, type: "number" },
+        { label: `${several ? "Rows" : "Items"} with negative available stock`, value: totals.negative, type: "number" },
+        { label: "" },
+        { label: "Total stock committed", value: totals.committed, type: "number" },
+        { label: "Total stock available", value: totals.available, type: "number" },
+        { label: "Total stock on hand", value: totals.onHand, type: "number" },
+        ...(stats.inactiveRows ? [{ label: "" }, { label: "Rows where the item is deactivated at the location", value: stats.inactiveRows, type: "number" }, { label: "Stock on hand in those rows", value: stats.inactiveOnHand, type: "number" }] : []),
+      ],
+      notes: [
+        `Stock Committed, Available and On Hand are Shopify's own quantities for each location, as of when the report was built. Rows with ${threshold} or fewer available are highlighted in red.`,
+        filters.zeroStock?.[0] === "hide"
+          ? `Items with no stock at a location (committed, available and on hand all 0) are left out: ${stats.hiddenNoStock} of the ${stats.hiddenNoStock + rows.length} stock records that match your other filters.`
+          : "Items with no stock at a location are included.",
+        ...(stats.inactiveRows ? [`${stats.inactiveRows} row(s) are for items deactivated at that location in Shopify (${stats.inactiveOnHand} units on hand in total). They still hold stock, and Shopify's analytics counts it, so they are listed.`] : []),
+        ...(stats.noVariant ? [`${stats.noVariant} stock record(s) belong to a product that no longer exists and are not listed.`] : []),
+      ],
+    };
+  },
 };
 
 // Returns { action: "ready" | "skipped" | "failed" | "not-supported", ... }.
@@ -124,15 +168,15 @@ export async function generateReport({ db, admin, jobId, deps = {} }) {
 
   const started = Date.now();
   try {
-    if (!job.ordersFile || !job.eventsFile || !job.productsFile) throw new Error("the downloaded data files are missing");
+    if (exportSequence(job.reportType).some((name) => !job[FILE_COLUMN[name]])) throw new Error("the downloaded data files are missing");
     const params = parseParams(job.params);
     const reportKey = params.reportKey ?? job.reportType;
     const report = getReport(reportKey);
     const columns = buildReportColumns(reportKey, params.fields);
     if (columns.length === 0) throw new Error("no columns were selected");
 
-    const range = params.range;
-    if (!range?.start || !range?.end) throw new Error("the request has no date range");
+    const range = params.range ?? null;
+    if (!STOCK_REPORTS.has(reportKey) && (!range?.start || !range?.end)) throw new Error("the request has no date range");
     const build = BUILDERS[reportKey];
     if (!build) throw new Error(`there is no builder for ${reportKey}`);
     const mappings = await loadMappings(db, job.shop);
@@ -148,17 +192,20 @@ export async function generateReport({ db, admin, jobId, deps = {} }) {
       staffByOrder = await fetchStaff(admin, local.from, local.to);
     }
 
-    const built = await build({ job, columns, range, filters, mappings, staffByOrder, keep: buildRowFilter(reportKey, filters) });
+    const built = await build({ job, params, columns, range, filters, mappings, staffByOrder, keep: buildRowFilter(reportKey, filters) });
     const filePath = pathFor(job.id);
 
     const { rows: rowCount, bytes } = await write({
       filePath,
       sheetName: report.label,
-      columns,
+      columns: built.columns ?? columns,
       rows: built.rows,
       footer: built.footer,
       summary: built.summary,
+      title: built.title,
+      highlight: built.highlight,
       request: {
+        period: built.period,
         reportLabel: report.label,
         generatedAt: parseLocalDateTime(formatStoreDate(now())), // store wall-clock, like Order Date
         range: params.localRange ?? null,
