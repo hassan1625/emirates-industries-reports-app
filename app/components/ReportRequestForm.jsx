@@ -6,7 +6,8 @@
 // Generate), then the date range, compact searchable filters and the column
 // choice, with a Summary of the request beside them.
 import { useState } from "react";
-import { getReport, getReportFilters, getSelectableFields, hasFieldSelection } from "../config";
+import { DATE_RANGE_MODES, getReport, getReportFilters, getSelectableFields, hasFieldSelection } from "../config";
+import { priorYearRange } from "../pipeline/dates";
 import { DATE_PRESETS, matchPreset, presetRange } from "../pipeline/date-presets";
 import MultiFilter from "./MultiFilter";
 import { Checkbox, DateInput, SelectField } from "./polaris-inputs";
@@ -32,6 +33,12 @@ export default function ReportRequestForm({ reportKey, options, defaults, errors
   const [to, setTo] = useState(defaults.dateRange.to);
   const [selected, setSelected] = useState({});
 
+  // Yearly-pair reports compare the dates with another period: by default the same
+  // dates a year earlier (following the dates above), or one the person typed in.
+  const yearly = dateFilter?.mode === DATE_RANGE_MODES.YEARLY_PAIR;
+  const [typedCompare, setTypedCompare] = useState(null);
+  const compare = typedCompare ?? priorYearRange({ from, to });
+
   // Field selection (reports that offer it). Selectable = has data on this plan.
   const withFields = hasFieldSelection(reportKey);
   const fieldList = withFields ? getSelectableFields(reportKey) : [];
@@ -49,7 +56,7 @@ export default function ReportRequestForm({ reportKey, options, defaults, errors
     }
   };
 
-  const submit = () => onSubmit({ dateRange: { from, to }, filters: selected, ...(withFields ? { fields } : {}) });
+  const submit = () => onSubmit({ dateRange: { from, to }, ...(yearly ? { comparison: compare } : {}), filters: selected, ...(withFields ? { fields } : {}) });
   const clearFilters = () => setSelected({});
   const summarize = (filter) => ((selected[filter.key] ?? []).length ? `${selected[filter.key].length} selected` : (filter.allLabel ?? "All"));
 
@@ -66,13 +73,40 @@ export default function ReportRequestForm({ reportKey, options, defaults, errors
 
       {renderStatus?.({ submit, clearFilters })}
 
-      {dateFilter && (
+      {dateFilter && !yearly && (
         <s-section heading={dateFilter.label}>
           <s-grid gridTemplateColumns="1fr 1fr 1fr" gap="base">
             <SelectField label="Period" name="period" value={preset} options={DATE_PRESETS.map(({ key, label }) => ({ value: key, label }))} onValue={choosePreset} />
             <DateInput label="Start date" name={`${dateFilter.key}-from`} value={from} onValue={setFrom} error={errors[dateFilter.key]} />
             <DateInput label="End date" name={`${dateFilter.key}-to`} value={to} onValue={setTo} />
           </s-grid>
+        </s-section>
+      )}
+
+      {yearly && (
+        <s-section heading="Periods to compare">
+          <s-stack gap="base">
+            <s-text color="subdued">Choose any two periods, for example this year and last year, or two earlier years. The earlier one is shown first in the report. Period 1 starts as the same dates a year before Period 2.</s-text>
+            <s-grid gridTemplateColumns="1fr 1fr 1fr" gap="base">
+              <s-stack justifyContent="end">
+                <s-text type="strong">Period 1</s-text>
+              </s-stack>
+              <DateInput label="Start date" name="comparison-from" value={compare.from} onValue={(value) => setTypedCompare({ ...compare, from: value })} error={errors.comparison} />
+              <DateInput label="End date" name="comparison-to" value={compare.to} onValue={(value) => setTypedCompare({ ...compare, to: value })} />
+            </s-grid>
+            {typedCompare && (
+              <s-stack direction="inline">
+                <s-button variant="tertiary" onClick={() => setTypedCompare(null)}>
+                  Use the same dates a year before Period 2
+                </s-button>
+              </s-stack>
+            )}
+            <s-grid gridTemplateColumns="1fr 1fr 1fr" gap="base">
+              <SelectField label="Period 2" name="period" value={preset} options={DATE_PRESETS.map(({ key, label }) => ({ value: key, label }))} onValue={choosePreset} />
+              <DateInput label="Start date" name={`${dateFilter.key}-from`} value={from} onValue={setFrom} error={errors[dateFilter.key]} />
+              <DateInput label="End date" name={`${dateFilter.key}-to`} value={to} onValue={setTo} />
+            </s-grid>
+          </s-stack>
         </s-section>
       )}
 
@@ -133,7 +167,9 @@ export default function ReportRequestForm({ reportKey, options, defaults, errors
       <div slot="aside" style={STICKY}>
         <s-section heading="Summary">
           <s-stack gap="small">
-            {dateFilter && <SummaryRow label="Dates" value={`${from} to ${to}`} />}
+            {dateFilter && !yearly && <SummaryRow label="Dates" value={`${from} to ${to}`} />}
+            {yearly && <SummaryRow label="Period 1" value={`${compare.from} to ${compare.to}`} />}
+            {yearly && <SummaryRow label="Period 2" value={`${from} to ${to}`} />}
             {selectFilters.map((filter) => (
               <SummaryRow key={filter.key} label={filter.label} value={summarize(filter)} />
             ))}

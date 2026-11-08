@@ -20,6 +20,10 @@ describe("presetRange", () => {
     assert.deepEqual(presetRange("lastQuarter", "2026-02-02"), { from: "2025-10-01", to: "2025-12-31" });
     assert.deepEqual(presetRange("lastQuarter", "2026-05-20"), { from: "2026-01-01", to: "2026-03-31" });
   });
+  test("year to date runs from 1 January to today; last year is the whole previous year", () => {
+    assert.deepEqual(presetRange("yearToDate", "2026-11-08"), { from: "2026-01-01", to: "2026-11-08" });
+    assert.deepEqual(presetRange("lastYear", "2026-11-08"), { from: "2025-01-01", to: "2025-12-31" });
+  });
   test("custom has no range", () => assert.equal(presetRange("custom", "2026-10-13"), null));
 });
 

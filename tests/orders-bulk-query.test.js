@@ -123,3 +123,13 @@ test("a cutoff bounds both exports of a job to the same set of orders", () => {
 test("a cutoff before the start is refused", () => {
   assert.throws(() => buildOrdersUpdatedSinceQuery({ start: "2026-09-01T00:00:00Z", cutoff: "2026-08-01T00:00:00Z" }), /start must not be after/);
 });
+
+import { updatedWindowFilter } from "../app/pipeline/orders-bulk-query.js";
+test("a comparison window asks only for orders that can have events in one of the two periods", () => {
+  const periods = [{ start: "2025-10-09T20:00:00Z", end: "2025-11-08T19:59:59Z" }, { start: "2026-10-09T20:00:00Z", end: "2026-11-08T19:59:59Z" }];
+  assert.equal(
+    updatedWindowFilter({ start: "2025-10-09T20:00:00Z", cutoff: "2026-11-08T10:00:00Z", periods }),
+    "((updated_at:>=2025-10-09T20:00:00Z created_at:<=2025-11-08T19:59:59Z) OR (updated_at:>=2026-10-09T20:00:00Z created_at:<=2026-11-08T19:59:59Z)) updated_at:<=2026-11-08T10:00:00Z",
+  );
+  assert.equal(updatedWindowFilter({ start: "2024-01-01T00:00:00Z", cutoff: "2026-11-08T10:00:00Z" }), "updated_at:>=2024-01-01T00:00:00Z updated_at:<=2026-11-08T10:00:00Z");
+});

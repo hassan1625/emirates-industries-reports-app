@@ -8,6 +8,8 @@ export const DATE_PRESETS = Object.freeze([
   { key: "last30", label: "Last 30 days" },
   { key: "lastMonth", label: "Last month" },
   { key: "lastQuarter", label: "Last quarter" },
+  { key: "yearToDate", label: "Year to date" },
+  { key: "lastYear", label: "Last year" },
   { key: "custom", label: "Custom" },
 ]);
 
@@ -36,6 +38,10 @@ export function presetRange(key, today) {
       const endMonth = startMonth + 2;
       return { from: `${y}-${pad(startMonth)}-01`, to: `${y}-${pad(endMonth)}-${pad(lastDayOf(y, endMonth))}` };
     }
+    case "yearToDate":
+      return { from: `${year}-01-01`, to: today };
+    case "lastYear":
+      return { from: `${year - 1}-01-01`, to: `${year - 1}-12-31` };
     default:
       return null;
   }

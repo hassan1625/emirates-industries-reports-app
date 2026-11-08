@@ -42,12 +42,17 @@ export function buildOrdersBulkQuery({ start, end }) {
 // creation date. This is the order set a dated-events report needs: a return
 // today belongs to an older order. The same filter selects the events export,
 // so both files describe the same orders.
-export function updatedWindowFilter({ start, cutoff }) {
+// `periods` (optional, [{ start, end }]) narrows the set to the orders that can have
+// an event inside one of those periods: placed before the period ends and changed
+// after it starts. A comparison of two periods far apart then skips the long gap
+// between them (a year of orders it would otherwise fetch for nothing).
+export function updatedWindowFilter({ start, cutoff, periods }) {
   const from = toIso(start, "start");
-  if (cutoff === undefined || cutoff === null) return `updated_at:>=${from}`;
+  const inPeriods = periods?.length ? `(${periods.map((p) => `(updated_at:>=${toIso(p.start, "period start")} created_at:<=${toIso(p.end, "period end")})`).join(" OR ")})` : `updated_at:>=${from}`;
+  if (cutoff === undefined || cutoff === null) return inPeriods;
   const to = toIso(cutoff, "cutoff");
   if (new Date(from) > new Date(to)) throw new Error("Date range start must not be after the cutoff");
-  return `updated_at:>=${from} updated_at:<=${to}`;
+  return `${inPeriods} updated_at:<=${to}`;
 }
 
 // The orders data for that order set.

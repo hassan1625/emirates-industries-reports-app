@@ -12,8 +12,8 @@ import { ensureParentDir } from "./storage.js";
 // Excel's hard limit per sheet, including the header row.
 export const MAX_SHEET_ROWS = 1_048_576;
 
-const NUMBER_FORMATS = { currency: "#,##0.00", number: "#,##0", date: "yyyy-mm-dd hh:mm:ss", string: "@" };
-const DEFAULT_WIDTHS = { currency: 14, number: 10, date: 20, string: 18 };
+const NUMBER_FORMATS = { currency: "#,##0.00", number: "#,##0", percent: "0.0%", date: "yyyy-mm-dd hh:mm:ss", string: "@" };
+const DEFAULT_WIDTHS = { currency: 14, number: 10, percent: 12, date: 20, string: 18 };
 
 // "2026-08-31 00:34:57" (store wall-clock) -> a Date whose UTC parts are those
 // numbers, which Excel shows as the same wall-clock time.
@@ -27,7 +27,7 @@ export function parseLocalDateTime(text) {
 // The value to put in a cell for a column type, or null for an empty cell.
 export function toCellValue(value, type) {
   if (value === null || value === undefined || value === "") return null;
-  if (type === "currency" || type === "number") return Number.isFinite(Number(value)) ? Number(value) : null;
+  if (type === "currency" || type === "number" || type === "percent") return Number.isFinite(Number(value)) ? Number(value) : null;
   if (type === "date") return parseLocalDateTime(value);
   return String(value);
 }
@@ -50,9 +50,57 @@ const columnWidth = (column) => column.width ?? Math.max(column.label.length + 3
 //            filters: [{ label, values: string[] }], notes: string[] } for the
 //            "Request" sheet. Optional.
 // Resolves to { rows, bytes } (rows excludes the header).
-export async function writeReportXlsx({ filePath, sheetName, columns, rows, footer, summary, request, title, highlight }) {
+export async function writeReportXlsx({ filePath, sheetName, columns, rows, footer, summary, request, title, highlight, sheets }) {
   await ensureParentDir(filePath);
   const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({ filename: filePath, useStyles: true, useSharedStrings: false });
+  // One data sheet, or several when the report gives `sheets`.
+  const dataSheets = sheets ?? [{ name: sheetName, columns, rows, footer, title, highlight }];
+  const counts = [];
+  for (const data of dataSheets) counts.push(await writeDataSheet(workbook, { sheetName: data.name, ...data }));
+  const count = counts.reduce((a, b) => a + b, 0);
+
+  if (summary?.length) {
+    const page = workbook.addWorksheet("Summary");
+    page.columns = [{ width: 44 }, { width: 24 }];
+    for (const { label, value, type } of summary) {
+      const row = page.addRow([label, value === undefined || value === null ? null : toCellValue(value, type)]);
+      if (value === undefined || value === null) row.font = { bold: true };
+      else if (NUMBER_FORMATS[type] && type !== "string" && type !== "date") row.getCell(2).numFmt = NUMBER_FORMATS[type];
+      row.commit();
+    }
+    page.commit();
+  }
+
+  if (request) {
+    const info = workbook.addWorksheet("Request");
+    info.columns = [{ width: 24 }, { width: 80 }];
+    const add = (label, value) => {
+      const row = info.addRow([label, value]);
+      if (value instanceof Date) row.getCell(2).numFmt = NUMBER_FORMATS.date; // show a date, not a serial number
+      row.commit();
+    };
+    add("Report", request.reportLabel);
+    add("Generated (store time)", request.generatedAt);
+    add("Period", request.period ?? (request.range ? `${request.range.from} to ${request.range.to} (${request.range.timeZone})` : ""));
+    for (const filter of request.filters ?? []) add(filter.label, filter.values.join(", "));
+    if (!(request.filters ?? []).length) add("Filters", "None (everything)");
+    if (dataSheets.length === 1) {
+      add("Columns", dataSheets[0].columns.map((column) => column.label).join(", "));
+      add("Rows", count);
+    } else {
+      dataSheets.forEach((data, i) => add(`Rows: ${data.name}`, counts[i]));
+    }
+    for (const note of request.notes ?? []) add("Note", note);
+    info.commit();
+  }
+
+  await workbook.commit();
+  const { size } = await (await import("node:fs/promises")).stat(filePath);
+  return { rows: count, bytes: size };
+}
+
+// One data sheet; returns the number of rows written (the header and footer excluded).
+async function writeDataSheet(workbook, { sheetName, columns, rows, footer, title, highlight }) {
   const titleRows = title?.length ? title.length + 1 : 0; // the title lines and a blank one
   const headerRow = titleRows + 1;
   const sheet = workbook.addWorksheet(sheetName.slice(0, 31), { views: [{ state: "frozen", ySplit: headerRow }] });
@@ -98,39 +146,5 @@ export async function writeReportXlsx({ filePath, sheetName, columns, rows, foot
     total.commit();
   }
   sheet.commit();
-
-  if (summary?.length) {
-    const page = workbook.addWorksheet("Summary");
-    page.columns = [{ width: 44 }, { width: 24 }];
-    for (const { label, value, type } of summary) {
-      const row = page.addRow([label, value === undefined || value === null ? null : toCellValue(value, type)]);
-      if (value === undefined || value === null) row.font = { bold: true };
-      else if (type === "currency" || type === "number") row.getCell(2).numFmt = NUMBER_FORMATS[type];
-      row.commit();
-    }
-    page.commit();
-  }
-
-  if (request) {
-    const info = workbook.addWorksheet("Request");
-    info.columns = [{ width: 24 }, { width: 80 }];
-    const add = (label, value) => {
-      const row = info.addRow([label, value]);
-      if (value instanceof Date) row.getCell(2).numFmt = NUMBER_FORMATS.date; // show a date, not a serial number
-      row.commit();
-    };
-    add("Report", request.reportLabel);
-    add("Generated (store time)", request.generatedAt);
-    add("Period", request.period ?? (request.range ? `${request.range.from} to ${request.range.to} (${request.range.timeZone})` : ""));
-    for (const filter of request.filters ?? []) add(filter.label, filter.values.join(", "));
-    if (!(request.filters ?? []).length) add("Filters", "None (everything)");
-    add("Columns", columns.map((column) => column.label).join(", "));
-    add("Rows", count);
-    for (const note of request.notes ?? []) add("Note", note);
-    info.commit();
-  }
-
-  await workbook.commit();
-  const { size } = await (await import("node:fs/promises")).stat(filePath);
-  return { rows: count, bytes: size };
+  return count;
 }

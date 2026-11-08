@@ -40,3 +40,10 @@ test("every export the chain runs has a file location", async () => {
   for (const name of EXPORTS) assert.match(jobFilePath("job1", name), new RegExp(`job1[/\\\\]${name}\\.jsonl$`));
   assert.throws(() => jobFilePath("job1", "nope"), /Unknown export/);
 });
+
+test("a comparison job carries its two periods, so the export skips the gap between them", () => {
+  const previous = { from: "2025-10-10", to: "2025-11-08", start: "2025-10-09T20:00:00.000Z", end: "2025-11-08T19:59:59.000Z" };
+  const current = { from: "2026-10-10", to: "2026-11-08", start: "2026-10-09T20:00:00.000Z", end: "2026-11-08T19:59:59.000Z" };
+  const job = { params: JSON.stringify({ range: { start: previous.start, end: current.end }, periods: { previous, current }, cutoff: "2026-11-08T10:00:00.000Z" }), createdAt: new Date() };
+  assert.deepEqual(jobWindow(job), { start: previous.start, cutoff: "2026-11-08T10:00:00.000Z", periods: [{ start: previous.start, end: previous.end }, { start: current.start, end: current.end }] });
+});

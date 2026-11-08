@@ -57,3 +57,12 @@ describe("day arithmetic", () => {
     assert.equal(daysBetween("2026-09-01", "2026-09-01"), 0);
   });
 });
+
+import { priorYearRange, sameDayPriorYear } from "../app/pipeline/dates.js";
+test("the same day a year earlier, with 29 February moving to 28 February", () => {
+  assert.equal(sameDayPriorYear("2026-11-08"), "2025-11-08");
+  assert.equal(sameDayPriorYear("2028-02-29"), "2027-02-28");
+  assert.equal(sameDayPriorYear("2029-02-28"), "2028-02-28");
+  assert.equal(sameDayPriorYear("not a date"), "");
+  assert.deepEqual(priorYearRange({ from: "2026-01-01", to: "2026-03-31" }), { from: "2025-01-01", to: "2025-03-31" });
+});

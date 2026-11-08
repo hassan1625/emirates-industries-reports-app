@@ -339,7 +339,7 @@ describe("generateReport", () => {
     const db = fakeDb({ ...files, reportType: "debugPipeline" });
     assert.equal((await generateReport({ db, jobId: "job1" })).action, "not-supported");
     assert.equal(db.row.stage, STAGES.DATA_READY);
-    assert.deepEqual(GENERATED_REPORT_TYPES, ["generalSales", "refundCredit", "stockByLocation"]);
+    assert.deepEqual(GENERATED_REPORT_TYPES, ["generalSales", "refundCredit", "stockByLocation", "salesComparison"]);
   });
 
   test("an unknown job id is an error", async () => {
@@ -495,5 +495,109 @@ describe("advanceAndGenerate", () => {
   test("a build problem is visible in the action", async () => {
     const outcome = await advanceAndGenerate({ db: {}, admin: {}, result, deps: { advanceJob: async () => ({ action: "data-ready" }), generateReport: async () => ({ action: "failed" }) } });
     assert.equal(outcome.action, "data-ready:failed");
+  });
+});
+
+describe("Sales Comparison Report", () => {
+  let dir;
+  let files;
+  const originalRoot = process.env.REPORT_STORAGE_DIR;
+  before(async () => {
+    dir = await mkdtemp(join(tmpdir(), "comparison-"));
+    process.env.REPORT_STORAGE_DIR = dir;
+    files = { ordersFile: join(dir, "orders.jsonl"), eventsFile: join(dir, "events.jsonl"), productsFile: join(dir, "products.jsonl") };
+    await writeFile(files.ordersFile, jsonl(ORDERS));
+    await writeFile(files.eventsFile, jsonl(EVENTS));
+    await writeFile(files.productsFile, jsonl(PRODUCTS));
+  });
+  after(async () => {
+    if (originalRoot === undefined) delete process.env.REPORT_STORAGE_DIR;
+    else process.env.REPORT_STORAGE_DIR = originalRoot;
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  // September (current) against August (the earlier period) of the same fixtures.
+  const AUGUST = { from: "2026-08-01", to: "2026-08-31", start: "2026-07-31T20:00:00.000Z", end: "2026-08-31T19:59:59.000Z" };
+  const SEPTEMBER = { ...LOCAL, ...RANGE };
+  const comparisonRequest = (extra = {}) => JSON.stringify({ reportKey: "salesComparison", range: { start: AUGUST.start, end: RANGE.end }, localRange: LOCAL, periods: { current: SEPTEMBER, previous: AUGUST }, filters: {}, ...extra });
+  const build = async (extra) => {
+    const db = fakeDb({ ...files, reportType: "salesComparison", params: comparisonRequest(extra) });
+    const outcome = await generateReport({ db, admin: {}, jobId: "job1" });
+    assert.equal(outcome.action, "ready", db.row.error);
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(fromLocalUrl(db.row.resultFileUrl));
+    return { db, workbook, outcome };
+  };
+  const table = (sheet) => {
+    const rows = [];
+    sheet.eachRow((row) => rows.push(row.values.slice(1)));
+    const headerAt = rows.findIndex((r) => r[0] === "Collection Name" || r[0] === "Location Name");
+    return { header: rows[headerAt], body: rows.slice(headerAt + 1), title: rows.slice(0, headerAt) };
+  };
+
+  test("one sheet per sub-report, headed with the two years' dates when both are in the same year", async () => {
+    const { workbook } = await build();
+    assert.deepEqual(workbook.worksheets.map((w) => w.name), ["By Collection", "By Location", "Summary", "Request"]);
+    const { header, title } = table(workbook.getWorksheet("By Collection"));
+    // both periods are in 2026, so the headings carry the dates instead of two identical years
+    assert.deepEqual(header, ["Collection Name", "Total Sales 2026-08-01 to 2026-08-31", "Total Sales 2026-09-01 to 2026-09-30", "Difference", "Difference %"]);
+    assert.deepEqual(title, [["Period", "2026-09-01 to 2026-09-30"], ["Compared with", "2026-08-01 to 2026-08-31"]]);
+  });
+
+  test("By Collection: each collection, shipping on its own row, and a total", async () => {
+    const { workbook } = await build();
+    const { body } = table(workbook.getWorksheet("By Collection"));
+    assert.deepEqual(body, [
+      ["Boys", 210, -52.5, -262.5, -1.25],
+      ["Girls", 0, 105, 105], // nothing the month before: the percentage cell stays empty
+      ["Shipping (no collection)", 0, 22, 22],
+      ["Total", 210, 74.5, -135.5, -135.5 / 210],
+    ]);
+  });
+
+  test("By Location adds up to the same total; an order with no location is listed as such", async () => {
+    const { workbook } = await build();
+    const { body } = table(workbook.getWorksheet("By Location"));
+    assert.deepEqual(body.map((r) => r.slice(0, 3)), [["Al Ain", 210, -52.5], ["Head office", 0, 127], ["Total", 210, 74.5]]);
+  });
+
+  test("the Summary sheet has both totals and the difference", async () => {
+    const { workbook } = await build();
+    const lines = new Map();
+    workbook.getWorksheet("Summary").eachRow((r) => lines.set(r.getCell(1).value, r.getCell(2).value));
+    assert.equal(lines.get("Total sales 2026-09-01 to 2026-09-30 (2026-09-01 to 2026-09-30)"), 74.5);
+    assert.equal(lines.get("Difference"), -135.5);
+    assert.ok(Math.abs(lines.get("Difference %") - -135.5 / 210) < 1e-9);
+  });
+
+  test("the file's row count is the rows of both sheets, so an empty report is recognised", async () => {
+    const { outcome } = await build();
+    assert.equal(outcome.rows, 5); // Boys, Girls and Shipping on one sheet; Al Ain and Head office on the other
+  });
+
+  test("a collection filter narrows both sheets and leaves shipping out", async () => {
+    const { workbook } = await build({ filters: { collection: ["Girls"] } });
+    assert.deepEqual(table(workbook.getWorksheet("By Collection")).body, [["Girls", 0, 105, 105], ["Total", 0, 105, 105]]);
+    assert.deepEqual(table(workbook.getWorksheet("By Location")).body.map((r) => r.slice(0, 3)), [["Head office", 0, 105], ["Total", 0, 105]]);
+  });
+
+  test("events outside both periods are ignored", async () => {
+    const SEPT_ONLY = { ...AUGUST, from: "2026-07-01", to: "2026-07-31", start: "2026-06-30T20:00:00.000Z", end: "2026-07-31T19:59:59.000Z" };
+    const { workbook } = await build({ periods: { current: SEPTEMBER, previous: SEPT_ONLY } });
+    const { body } = table(workbook.getWorksheet("By Collection"));
+    assert.deepEqual(body.map((r) => r.slice(0, 3)), [["Boys", 0, -52.5], ["Girls", 0, 105], ["Shipping (no collection)", 0, 22], ["Total", 0, 74.5]]);
+  });
+
+  test("the headings carry the years when the periods are a year apart", async () => {
+    const LAST_YEAR = { from: "2025-09-01", to: "2025-09-30", start: "2025-08-31T20:00:00.000Z", end: "2025-09-30T19:59:59.000Z" };
+    const { workbook } = await build({ range: { start: LAST_YEAR.start, end: RANGE.end }, periods: { current: SEPTEMBER, previous: LAST_YEAR } });
+    assert.deepEqual(table(workbook.getWorksheet("By Location")).header.slice(1, 3), ["Total Sales 2025", "Total Sales 2026"]);
+  });
+
+  test("a job without comparison periods fails with a clear message", async () => {
+    const db = fakeDb({ ...files, reportType: "salesComparison", params: JSON.stringify({ reportKey: "salesComparison", range: RANGE, localRange: LOCAL, filters: {} }) });
+    const outcome = await generateReport({ db, admin: {}, jobId: "job1" });
+    assert.equal(outcome.action, "failed");
+    assert.match(db.row.error, /no comparison periods/);
   });
 });

@@ -228,3 +228,12 @@ test("products query uses 3 connections and no search filter", () => {
   assert.equal(query.match(/edges\s*\{/g).length, 3);
   assert.ok(!query.includes("query:"));
 });
+
+test("a comparison job's orders export is limited to its two periods", async () => {
+  const range = { start: new Date("2025-10-09T20:00:00Z"), end: new Date("2026-11-08T19:59:59Z") };
+  const periods = { previous: { start: "2025-10-09T20:00:00.000Z", end: "2025-11-08T19:59:59.000Z", from: "2025-10-10" }, current: { start: "2026-10-09T20:00:00.000Z", end: "2026-11-08T19:59:59.000Z", from: "2026-10-10" } };
+  let window;
+  const db = { reportJob: { create: async ({ data }) => ({ id: "job1", ...data }), update: async ({ data }) => ({ id: "job1", ...data }) } };
+  await startReportJob({ db, admin: {}, shop: "s", reportType: "salesComparison", range, params: { periods }, now: () => new Date("2026-11-08T10:00:00Z"), startOrders: async (_admin, given) => { window = given; return { id: "op" }; } });
+  assert.deepEqual(window.periods, [{ start: periods.previous.start, end: periods.previous.end }, { start: periods.current.start, end: periods.current.end }]);
+});

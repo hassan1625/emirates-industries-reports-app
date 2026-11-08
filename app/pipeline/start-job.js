@@ -22,7 +22,7 @@ export async function startReportJob({ db, admin, shop, reportType, range, param
   });
 
   try {
-    const operation = first === "orders" ? await startOrders(admin, { start: range.start, cutoff }) : await startProducts(admin);
+    const operation = first === "orders" ? await startOrders(admin, { start: range.start, cutoff, ...(params.periods ? { periods: [params.periods.previous, params.periods.current].map(({ start, end }) => ({ start, end })) } : {}) }) : await startProducts(admin);
     return await db.reportJob.update({
       where: { id: job.id },
       data: { stage: RUNNING_STAGE[first], [BULK_ID_COLUMN[first]]: operation.id },

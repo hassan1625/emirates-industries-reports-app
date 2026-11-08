@@ -104,10 +104,78 @@ test("another time zone changes the instants but not the calendar days", () => {
   assert.equal(result.value.range.from, "2026-09-01");
 });
 
-test("reports whose date range mode is not supported yet report it instead of crashing", () => {
-  const result = parseReportRequest("salesComparison", { dateRange: { from: "2026-01-01", to: "2026-12-31" } });
-  assert.equal(result.ok, false);
-  assert.match(result.errors.dateRange, /not supported/);
+describe("yearly-pair reports (Sales Comparison)", () => {
+  const YEARLY = "salesComparison";
+  const parse = (input, options = {}) => parseReportRequest(YEARLY, input, options);
+
+  test("the comparison period defaults to the same dates a year earlier", () => {
+    const result = parse({ dateRange: { from: "2026-01-01", to: "2026-03-31" } });
+    assert.equal(result.ok, true);
+    assert.equal(result.value.range.from, "2026-01-01");
+    assert.deepEqual([result.value.compareRange.from, result.value.compareRange.to], ["2025-01-01", "2025-03-31"]);
+  });
+
+  test("29 February has no counterpart a year earlier and becomes 28 February", () => {
+    const result = parse({ dateRange: { from: "2028-02-01", to: "2028-02-29" } });
+    assert.deepEqual([result.value.compareRange.from, result.value.compareRange.to], ["2027-02-01", "2027-02-28"]);
+  });
+
+  test("a chosen comparison period replaces the default", () => {
+    const result = parse({ dateRange: { from: "2026-10-01", to: "2026-10-31" }, comparison: { from: "2025-09-01", to: "2025-09-30" } });
+    assert.deepEqual([result.value.compareRange.from, result.value.compareRange.to], ["2025-09-01", "2025-09-30"]);
+  });
+
+  test("the window covers both periods (what the data export fetches)", () => {
+    const { value } = parse({ dateRange: { from: "2026-01-01", to: "2026-03-31" } });
+    assert.equal(value.window.start.toISOString(), value.compareRange.start.toISOString());
+    assert.equal(value.window.end.toISOString(), value.range.end.toISOString());
+  });
+
+  test("overlapping periods are refused", () => {
+    const result = parse({ dateRange: { from: "2026-10-01", to: "2026-10-31" }, comparison: { from: "2026-10-15", to: "2026-11-15" } });
+    assert.equal(result.ok, false);
+    assert.match(result.errors.comparison, /must not overlap/);
+  });
+
+  test("a bad comparison period is reported against the comparison, not the dates", () => {
+    const result = parse({ dateRange: { from: "2026-10-01", to: "2026-10-31" }, comparison: { from: "2025-10-31", to: "2025-10-01" } });
+    assert.equal(result.ok, false);
+    assert.match(result.errors.comparison, /Period 1: the start date must not be after/);
+    assert.equal(result.errors.dateRange, undefined);
+  });
+
+  test("the two periods can be any two periods, here two past years", () => {
+    const result = parse({ dateRange: { from: "2025-01-01", to: "2025-12-31" }, comparison: { from: "2024-01-01", to: "2024-12-31" } });
+    assert.equal(result.ok, true);
+    assert.equal(result.value.range.from, "2025-01-01");
+    assert.equal(result.value.compareRange.from, "2024-01-01");
+  });
+
+  test("whichever period starts first is the earlier one, in whatever order they were entered", () => {
+    const result = parse({ dateRange: { from: "2025-01-01", to: "2025-12-31" }, comparison: { from: "2026-01-01", to: "2026-10-31" } });
+    assert.equal(result.value.range.from, "2026-01-01");
+    assert.equal(result.value.compareRange.from, "2025-01-01");
+    assert.equal(result.value.window.start.toISOString(), result.value.compareRange.start.toISOString());
+    assert.equal(result.value.window.end.toISOString(), result.value.range.end.toISOString());
+  });
+
+  test("the two periods may be years apart; each is limited like any date range", () => {
+    assert.equal(parse({ dateRange: { from: "2026-10-01", to: "2026-10-31" }, comparison: { from: "2023-10-01", to: "2023-10-31" } }).ok, true);
+    const tooLong = parse({ dateRange: { from: "2026-10-01", to: "2026-10-31" }, comparison: { from: "2021-01-01", to: "2023-12-31" } });
+    assert.equal(tooLong.ok, false);
+    assert.match(tooLong.errors.comparison, /at most 800 days/);
+  });
+
+  test("the period being reported is checked like any date range", () => {
+    assert.match(parse({ dateRange: { from: "2026-10-31", to: "2026-10-01" } }).errors.dateRange, /start date must not be after/);
+    assert.match(parse({}).errors.dateRange, /Choose a start and an end date/);
+  });
+
+  test("a single-range report has no comparison period", () => {
+    const result = parseReportRequest(REPORT, good);
+    assert.equal(result.value.compareRange, null);
+    assert.equal(result.value.window, null);
+  });
 });
 
 import { getSelectableFields, defaultFieldKeys, hasFieldSelection } from "../app/config/index.js";

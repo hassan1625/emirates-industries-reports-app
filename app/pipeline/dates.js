@@ -51,3 +51,14 @@ export function addDays(date, days) {
 export function daysBetween(from, to) {
   return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86400000);
 }
+
+// The same calendar date one year earlier; 29 February becomes 28 February.
+export function sameDayPriorYear(date) {
+  if (!isValidDateString(date)) return "";
+  const [y, m, d] = date.split("-").map(Number);
+  const lastDay = new Date(Date.UTC(y - 1, m, 0)).getUTCDate();
+  return `${y - 1}-${String(m).padStart(2, "0")}-${String(Math.min(d, lastDay)).padStart(2, "0")}`;
+}
+
+// The period a year before { from, to } (the default comparison period).
+export const priorYearRange = ({ from, to }) => ({ from: sameDayPriorYear(from), to: sameDayPriorYear(to) });

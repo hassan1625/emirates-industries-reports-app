@@ -6,7 +6,7 @@ import { getReportFilters } from "../config/index.js";
 import { STORE_TIME_ZONE } from "../config/store.js";
 import { DATE_RANGE_MODES } from "../config/schema.js";
 import { defaultFieldKeys, getSelectableFields, hasFieldSelection } from "../config/field-selection.js";
-import { daysBetween, endOfDayUtc, isValidDateString, startOfDayUtc } from "./dates.js";
+import { daysBetween, endOfDayUtc, isValidDateString, priorYearRange, startOfDayUtc } from "./dates.js";
 
 // Longest date range accepted. A year of this store is about 37,000 orders; two
 // years would still be fine, anything beyond is almost certainly a mistake.
@@ -16,16 +16,29 @@ const SELECT_TYPES = new Set(["multiSelect", "singleSelect"]);
 
 const cleanList = (value) => [...new Set((Array.isArray(value) ? value : value == null ? [] : [value]).map((v) => String(v).trim()).filter(Boolean))];
 
-// input:   { dateRange: { from, to }, filters: { [filterKey]: string[] }, fields?: string[] }
+// One period of dates -> { from, to, timeZone, start, end } or an error message.
+function parsePeriod({ from, to } = {}, timeZone) {
+  if (!isValidDateString(from) || !isValidDateString(to)) return { error: "Dates must be real calendar dates" };
+  if (from > to) return { error: "The start date must not be after the end date" };
+  if (daysBetween(from, to) > MAX_RANGE_DAYS) return { error: `Choose a range of at most ${MAX_RANGE_DAYS} days` };
+  return { period: { from, to, timeZone, start: startOfDayUtc(from, timeZone), end: endOfDayUtc(to, timeZone) } };
+}
+
+// input:   { dateRange: { from, to }, comparison?: { from, to }, filters: { [filterKey]: string[] }, fields?: string[] }
 // options: { allowedOptions: { [filterKey]: string[] }, timeZone }
 // Returns { ok: true, value } or { ok: false, errors: { [filterKey]: message } }.
+// A yearly-pair report (Reports 3 and 5) compares two periods. `dateRange` and
+// `comparison` are the two (the comparison defaults to the same dates one year back);
+// value.range is the later one, value.compareRange the earlier one, and value.window
+// the one stretch of time that covers both, which is what the data export fetches.
 export function parseReportRequest(reportKey, input = {}, { allowedOptions = {}, timeZone = STORE_TIME_ZONE } = {}) {
   const errors = {};
-  const value = { reportKey, range: null, filters: {}, fields: null, ignored: [] };
+  const value = { reportKey, range: null, compareRange: null, window: null, filters: {}, fields: null, ignored: [] };
 
   for (const filter of getReportFilters(reportKey)) {
     if (filter.type === "dateRange") {
-      if (filter.mode !== DATE_RANGE_MODES.SINGLE) {
+      const yearly = filter.mode === DATE_RANGE_MODES.YEARLY_PAIR;
+      if (filter.mode !== DATE_RANGE_MODES.SINGLE && !yearly) {
         errors[filter.key] = `Date range mode "${filter.mode}" is not supported on this screen yet`;
         continue;
       }
@@ -34,14 +47,28 @@ export function parseReportRequest(reportKey, input = {}, { allowedOptions = {},
         if (filter.required) errors[filter.key] = "Choose a start and an end date";
         continue;
       }
-      if (!isValidDateString(from) || !isValidDateString(to)) {
-        errors[filter.key] = "Dates must be real calendar dates";
-      } else if (from > to) {
-        errors[filter.key] = "The start date must not be after the end date";
-      } else if (daysBetween(from, to) > MAX_RANGE_DAYS) {
-        errors[filter.key] = `Choose a range of at most ${MAX_RANGE_DAYS} days`;
+      const current = parsePeriod({ from, to }, timeZone);
+      if (current.error) {
+        errors[filter.key] = current.error;
+        continue;
+      }
+      value.range = current.period;
+      if (!yearly) continue;
+
+      // The second period: the one chosen, else the same dates a year earlier. The two
+      // can be any periods (this year and last year, or two past years); whichever
+      // starts first is the earlier one.
+      const chosen = input.comparison?.from && input.comparison?.to ? { from: input.comparison.from, to: input.comparison.to } : null;
+      const other = parsePeriod(chosen ?? (isValidDateString(from) && isValidDateString(to) ? priorYearRange({ from, to }) : {}), timeZone);
+      if (other.error) {
+        errors.comparison = `Period 1: ${other.error.charAt(0).toLowerCase()}${other.error.slice(1)}`;
+      } else if (other.period.from <= current.period.to && current.period.from <= other.period.to) {
+        errors.comparison = "The two periods must not overlap";
       } else {
-        value.range = { from, to, timeZone, start: startOfDayUtc(from, timeZone), end: endOfDayUtc(to, timeZone) };
+        const [earlier, later] = other.period.from < current.period.from ? [other.period, current.period] : [current.period, other.period];
+        value.range = later;
+        value.compareRange = earlier;
+        value.window = { start: earlier.start, end: later.end };
       }
       continue;
     }

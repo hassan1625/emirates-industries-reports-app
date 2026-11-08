@@ -206,3 +206,17 @@ test("the Refund Credit screen has its filters but no Columns section", () => {
   const summary = html.slice(html.indexOf('<div slot="aside"'));
   assert.doesNotMatch(summary, /Columns/);
 });
+
+test("a yearly-pair report shows two periods in one section, Period 1 defaulting to the same dates a year before", () => {
+  const html = render({ reportKey: "salesComparison" });
+  assert.match(html, /heading="Periods to compare"/);
+  assert.doesNotMatch(html, /heading="Date Range"/);
+  assert.match(html, /name="comparison-from"[^>]*value="2025-09-01"/);
+  assert.match(html, /name="comparison-to"[^>]*value="2025-09-30"/);
+  assert.match(html, /Period 1<\/s-text><s-text type="strong">2025-09-01 to 2025-09-30/);
+  assert.match(html, /Period 2<\/s-text><s-text type="strong">2026-09-01 to 2026-09-30/);
+});
+
+test("a single-range report has no comparison section", () => {
+  assert.doesNotMatch(render(), /Periods to compare/);
+});

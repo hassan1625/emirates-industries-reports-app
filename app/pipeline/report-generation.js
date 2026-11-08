@@ -12,7 +12,9 @@
 // puts it back and builds again.
 import { defaultFieldKeys, getReport, getReportFields, getReportFilters, hasFieldSelection } from "../config/index.js";
 import { groupAgreementOrders, groupOrders, readJsonl } from "./bulk-file.js";
+import { buildComparisonGroups, comparisonSheets, periodLabels } from "./comparison-rows.js";
 import { buildCreditRows, summarizeCredits } from "./credit-rows.js";
+import { difference, round2 } from "../calculations/index.js";
 import { loadProductIndex } from "./join.js";
 import { buildLedgerRows, formatStoreDate, indexAgreements, ledgerColumns } from "./ledger-rows.js";
 import { loadMappings } from "./location-mapping.js";
@@ -26,7 +28,7 @@ import { removeWorkFiles, shouldKeepWorkFiles } from "./work-files.js";
 import { STAGES, exportSequence, FILE_COLUMN } from "./job-stages.js";
 import { buildStockRows, lowStockThreshold, stockColumns, summarizeStock } from "./stock-rows.js";
 
-export const GENERATED_REPORT_TYPES = Object.freeze(["generalSales", "refundCredit", "stockByLocation"]);
+export const GENERATED_REPORT_TYPES = Object.freeze(["generalSales", "refundCredit", "stockByLocation", "salesComparison"]);
 
 const parseParams = (text) => {
   try {
@@ -107,6 +109,43 @@ const BUILDERS = {
     };
   },
 
+  // Total Sales of two periods (this year and the year before) by collection and by location.
+  async salesComparison({ job, params, mappings, keep }) {
+    const { previous, current } = params.periods ?? {};
+    if (!previous?.start || !current?.start) throw new Error("the request has no comparison periods");
+    const productIndex = await loadProductIndex(job.productsFile);
+    const agreementsByOrder = await indexAgreements(groupAgreementOrders(readJsonl(job.eventsFile)));
+    const window = (p) => ({ startMs: Date.parse(p.start), endMs: Date.parse(p.end) + 999 });
+    const groups = await buildComparisonGroups(groupOrders(readJsonl(job.ordersFile)), agreementsByOrder, { periods: { previous: window(previous), current: window(current) }, productIndex, mappings, keep });
+    const labels = periodLabels(previous, current);
+    const { sheets, totals } = comparisonSheets("salesComparison", groups, labels);
+    const overall = totals.byLocation; // every sale has a location, so this is the report's total
+    const shown = { previous: `${previous.from} to ${previous.to}`, current: `${current.from} to ${current.to}` };
+    const title = [
+      { label: "Period", value: shown.current },
+      { label: "Compared with", value: shown.previous },
+    ];
+    const change = difference(overall.current, overall.previous);
+    const headingOf = (key) => sheets[0].columns.find((column) => column.key === key).label;
+    return {
+      sheets: sheets.map((sheet) => ({ ...sheet, title })),
+      rows: [],
+      period: `${shown.current}, compared with ${shown.previous}`,
+      summary: [
+        { label: `Total sales ${labels.current} (${shown.current})`, value: overall.current, ...MONEY },
+        { label: `Total sales ${labels.previous} (${shown.previous})`, value: overall.previous, ...MONEY },
+        { label: headingOf("difference"), value: round2(change.value), ...MONEY },
+        ...(change.percent === null ? [] : [{ label: headingOf("differencePercent"), value: change.percent / 100, type: "percent" }]),
+      ],
+      notes: [
+        "Total Sales is the General Sales Report's Total Sales (net sales plus shipping and taxes) of every sale and return, each counted on the day it happened, so returns and exchanges lower the period in which they were processed.",
+        "The By Collection sheet shows shipping on its own row, because shipping belongs to no collection; items with no collection are listed as (No collection). Choosing collections leaves shipping out.",
+        "Difference is the current period minus the earlier one; Difference % is left blank when the earlier period had no sales.",
+        "Credit Shopify keeps on exchanges is not included; it is reported in the Refund Credit Report.",
+      ],
+    };
+  },
+
   // A snapshot of the stock levels at one or more locations: no date range, no staff.
   async stockByLocation({ job, params, filters }) {
     const { rows, locationNames, stats } = await buildStockRows(
@@ -173,7 +212,6 @@ export async function generateReport({ db, admin, jobId, deps = {} }) {
     const reportKey = params.reportKey ?? job.reportType;
     const report = getReport(reportKey);
     const columns = buildReportColumns(reportKey, params.fields);
-    if (columns.length === 0) throw new Error("no columns were selected");
 
     const range = params.range ?? null;
     if (!STOCK_REPORTS.has(reportKey) && (!range?.start || !range?.end)) throw new Error("the request has no date range");
@@ -193,6 +231,7 @@ export async function generateReport({ db, admin, jobId, deps = {} }) {
     }
 
     const built = await build({ job, params, columns, range, filters, mappings, staffByOrder, keep: buildRowFilter(reportKey, filters) });
+    if (!built.sheets && (built.columns ?? columns).length === 0) throw new Error("no columns were selected");
     const filePath = pathFor(job.id);
 
     const { rows: rowCount, bytes } = await write({
@@ -204,6 +243,7 @@ export async function generateReport({ db, admin, jobId, deps = {} }) {
       summary: built.summary,
       title: built.title,
       highlight: built.highlight,
+      sheets: built.sheets,
       request: {
         period: built.period,
         reportLabel: report.label,
