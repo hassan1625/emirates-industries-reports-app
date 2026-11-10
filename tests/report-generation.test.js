@@ -339,7 +339,7 @@ describe("generateReport", () => {
     const db = fakeDb({ ...files, reportType: "debugPipeline" });
     assert.equal((await generateReport({ db, jobId: "job1" })).action, "not-supported");
     assert.equal(db.row.stage, STAGES.DATA_READY);
-    assert.deepEqual(GENERATED_REPORT_TYPES, ["generalSales", "refundCredit", "stockByLocation", "salesComparison", "skuQuantity"]);
+    assert.deepEqual(GENERATED_REPORT_TYPES, ["generalSales", "refundCredit", "stockByLocation", "salesComparison", "skuQuantity", "totalSalesMatrix"]);
   });
 
   test("an unknown job id is an error", async () => {
@@ -685,5 +685,79 @@ describe("Quantity Report for SKU", () => {
     assert.equal(lines.get("SKUs listed (one per item)"), 4);
     assert.equal(lines.get("Listed with sales in either period"), 3);
     assert.equal(lines.get("Listed with no sales in either period"), 1);
+  });
+});
+
+describe("Total Sales Report by Date Range", () => {
+  let dir;
+  let files;
+  const originalRoot = process.env.REPORT_STORAGE_DIR;
+  before(async () => {
+    dir = await mkdtemp(join(tmpdir(), "matrix-"));
+    process.env.REPORT_STORAGE_DIR = dir;
+    files = { ordersFile: join(dir, "orders.jsonl"), eventsFile: join(dir, "events.jsonl"), productsFile: join(dir, "products.jsonl") };
+    await writeFile(files.ordersFile, jsonl(ORDERS));
+    await writeFile(files.eventsFile, jsonl(EVENTS));
+    await writeFile(files.productsFile, jsonl(PRODUCTS));
+  });
+  after(async () => {
+    if (originalRoot === undefined) delete process.env.REPORT_STORAGE_DIR;
+    else process.env.REPORT_STORAGE_DIR = originalRoot;
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  const matrixRequest = (extra = {}) => JSON.stringify({ reportKey: "totalSalesMatrix", range: RANGE, localRange: LOCAL, filters: {}, ...extra });
+  const build = async (extra) => {
+    const db = fakeDb({ ...files, reportType: "totalSalesMatrix", params: matrixRequest(extra) });
+    const outcome = await generateReport({ db, admin: {}, jobId: "job1" });
+    assert.equal(outcome.action, "ready", db.row.error);
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(fromLocalUrl(db.row.resultFileUrl));
+    const sheet = workbook.worksheets[0];
+    const rows = [];
+    sheet.eachRow((row) => rows.push(Array.from(row.values.slice(1))));
+    return { workbook, sheet, rows, outcome };
+  };
+
+  test("collections down the side, locations across the top, with row totals, column totals and a grand total", async () => {
+    const { rows } = await build();
+    assert.deepEqual(rows, [
+      ["Collection Name", "Location Name", "Location Name", "Total"], // merged cells read back with the merged value in each
+      ["Collection Name", "Al Ain", "Head office", "Total"],
+      ["Boys", -52.5, 0, -52.5], // the #1 sale less the #3 return, both at Al Ain
+      ["Girls", 0, 105, 105],
+      ["Shipping (no collection)", 0, 22, 22],
+      ["Total", -52.5, 127, 74.5],
+    ]);
+  });
+
+  test("the headings are merged: the location heading spans the locations, the others span both header rows", async () => {
+    const { sheet } = await build();
+    assert.deepEqual(Object.values(sheet._merges).map((merge) => merge.range).sort(), ["A1:A2", "B1:C1", "D1:D2"]);
+  });
+
+  test("collections and locations are those that had a sale in the period, nothing else", async () => {
+    // October has no sales at all: the matrix has no rows and no locations
+    const { rows, outcome } = await build({ range: { start: "2026-09-30T20:00:00.000Z", end: "2026-10-31T19:59:59.000Z" }, localRange: { from: "2026-10-01", to: "2026-10-31", timeZone: "Asia/Muscat" } });
+    assert.deepEqual(rows, [["Collection Name", "Total"], ["Collection Name", "Total"], ["Total", 0]]);
+    assert.equal(outcome.rows, 0);
+  });
+
+  test("the grand total is the General Sales Report's Total Sales for the same dates", async () => {
+    const { workbook } = await build();
+    const lines = new Map();
+    workbook.getWorksheet("Summary").eachRow((r) => lines.set(r.getCell(1).value, r.getCell(2).value));
+    assert.equal(lines.get("Total sales (grand total)"), 74.5);
+    assert.equal(lines.get("Collections (rows)"), 3);
+    assert.equal(lines.get("Locations (columns)"), 2);
+    assert.equal(lines.get("Of which shipping"), 22);
+    const db = fakeDb({ ...files, params: JSON.stringify({ reportKey: "generalSales", range: RANGE, localRange: LOCAL, filters: {}, fields: ["totalSales"] }) });
+    await generateReport({ db, admin: {}, jobId: "job1", deps: { fetchStaff: async () => new Map() } });
+    const report = new ExcelJS.Workbook();
+    await report.xlsx.readFile(fromLocalUrl(db.row.resultFileUrl));
+    const sheet = report.getWorksheet("General Sales Report");
+    let sum = 0;
+    sheet.eachRow((row, i) => { if (i > 1) sum += row.getCell(1).value ?? 0; });
+    assert.equal(Math.round(sum * 100) / 100, 74.5);
   });
 });

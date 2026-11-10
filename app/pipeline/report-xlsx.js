@@ -56,7 +56,7 @@ export async function writeReportXlsx({ filePath, sheetName, columns, rows, foot
   // One data sheet, or several when the report gives `sheets`.
   const dataSheets = sheets ?? [{ name: sheetName, columns, rows, footer, title, highlight }];
   const counts = [];
-  for (const data of dataSheets) counts.push(await writeDataSheet(workbook, { sheetName: data.name, ...data }));
+  for (const data of dataSheets) counts.push(await (data.matrix ? writeMatrixSheet(workbook, data) : writeDataSheet(workbook, { sheetName: data.name, ...data })));
   const count = counts.reduce((a, b) => a + b, 0);
 
   if (summary?.length) {
@@ -84,7 +84,9 @@ export async function writeReportXlsx({ filePath, sheetName, columns, rows, foot
     add("Period", request.period ?? (request.range ? `${request.range.from} to ${request.range.to} (${request.range.timeZone})` : ""));
     for (const filter of request.filters ?? []) add(filter.label, filter.values.join(", "));
     if (!(request.filters ?? []).length) add("Filters", "None (everything)");
-    if (dataSheets.length === 1) {
+    if (dataSheets.length === 1 && dataSheets[0].matrix) {
+      add("Rows", count);
+    } else if (dataSheets.length === 1) {
       add("Columns", dataSheets[0].columns.map((column) => column.label).join(", "));
       add("Rows", count);
     } else {
@@ -147,4 +149,53 @@ async function writeDataSheet(workbook, { sheetName, columns, rows, footer, titl
   }
   sheet.commit();
   return count;
+}
+
+// A pivot sheet: `matrix` is { rowHeading, columnHeading, totalHeading?, columns: [names], rows: [{ label, values: [numbers], total }],
+// footer: { label, values, total } }. The headings of the row and total columns span both
+// header lines and the column heading spans every column name. Returns the number of rows.
+async function writeMatrixSheet(workbook, { name, matrix, title }) {
+  const { rowHeading, columnHeading, columns, rows, footer } = matrix;
+  const totalHeading = matrix.totalHeading ?? footer.label;
+  const titleRows = title?.length ? title.length + 1 : 0;
+  const top = titleRows + 1;
+  const sheet = workbook.addWorksheet(name.slice(0, 31), { views: [{ state: "frozen", xSplit: 1, ySplit: top + 1 }] });
+  sheet.columns = [{ width: 36 }, ...columns.map(() => ({ width: 18, style: { numFmt: NUMBER_FORMATS.currency } })), { width: 18, style: { numFmt: NUMBER_FORMATS.currency } }];
+
+  const last = columns.length + 2; // the total column
+  const put = (number, values) => {
+    const row = sheet.getRow(number);
+    row.values = values;
+    return row;
+  };
+  for (const [i, { label, value }] of (title ?? []).entries()) {
+    const line = put(i + 1, [label, value]);
+    line.getCell(1).font = { bold: true };
+    line.commit();
+  }
+  if (titleRows) put(titleRows, []).commit();
+
+  // A streamed sheet cannot merge rows it has already written, so the merges are
+  // declared first (they create the two header rows), then the headings are put in.
+  sheet.mergeCells(top, 1, top + 1, 1);
+  if (columns.length > 1) sheet.mergeCells(top, 2, top, last - 1);
+  sheet.mergeCells(top, last, top + 1, last);
+  const style = (row) => {
+    row.font = { bold: true };
+    row.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE8EEF4" } };
+    row.alignment = { horizontal: "center", vertical: "middle" };
+  };
+  const first = put(top, columns.length ? [rowHeading, columnHeading, ...columns.slice(1).map(() => null), totalHeading] : [rowHeading, totalHeading]);
+  const second = put(top + 1, [null, ...columns, null]);
+  style(first);
+  style(second);
+  first.commit();
+  second.commit();
+
+  for (const row of rows) sheet.addRow([row.label, ...row.values, row.total]).commit();
+  const total = sheet.addRow([footer.label, ...footer.values, footer.total]);
+  total.font = { bold: true };
+  total.commit();
+  sheet.commit();
+  return rows.length;
 }

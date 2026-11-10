@@ -14,6 +14,7 @@ import { defaultFieldKeys, getReport, getReportFields, getReportFilters, hasFiel
 import { groupAgreementOrders, groupOrders, readJsonl } from "./bulk-file.js";
 import { buildComparisonGroups, comparisonSheets, periodLabels } from "./comparison-rows.js";
 import { buildSkuQuantities, skuQuantitySheet } from "./sku-quantity-rows.js";
+import { buildSalesMatrix, matrixSheet } from "./matrix-rows.js";
 import { buildCreditRows, summarizeCredits } from "./credit-rows.js";
 import { difference, round2 } from "../calculations/index.js";
 import { loadProductIndex } from "./join.js";
@@ -29,7 +30,7 @@ import { removeWorkFiles, shouldKeepWorkFiles } from "./work-files.js";
 import { STAGES, exportSequence, FILE_COLUMN } from "./job-stages.js";
 import { buildStockRows, lowStockThreshold, stockColumns, summarizeStock } from "./stock-rows.js";
 
-export const GENERATED_REPORT_TYPES = Object.freeze(["generalSales", "refundCredit", "stockByLocation", "salesComparison", "skuQuantity"]);
+export const GENERATED_REPORT_TYPES = Object.freeze(["generalSales", "refundCredit", "stockByLocation", "salesComparison", "skuQuantity", "totalSalesMatrix"]);
 
 const parseParams = (text) => {
   try {
@@ -149,6 +150,29 @@ const BUILDERS = {
         "Total Sales is the General Sales Report's Total Sales (net sales plus shipping and taxes) of every sale and return, each counted on the day it happened, so returns and exchanges lower the period in which they were processed.",
         "The By Collection sheet shows shipping on its own row, because shipping belongs to no collection; items with no collection are listed as (No collection). Choosing collections leaves shipping out.",
         "Difference is the current period minus the earlier one; Difference % is left blank when the earlier period had no sales.",
+        "Credit Shopify keeps on exchanges is not included; it is reported in the Refund Credit Report.",
+      ],
+    };
+  },
+
+  // Total Sales of one period as a collection x location matrix with totals.
+  async totalSalesMatrix({ job, range, mappings, keep }) {
+    const productIndex = await loadProductIndex(job.productsFile);
+    const agreementsByOrder = await indexAgreements(groupAgreementOrders(readJsonl(job.eventsFile)));
+    const data = await buildSalesMatrix(groupOrders(readJsonl(job.ordersFile)), agreementsByOrder, { range: { startMs: Date.parse(range.start), endMs: Date.parse(range.end) + 999 }, productIndex, mappings, keep });
+    const matrix = matrixSheet("totalSalesMatrix", data);
+    return {
+      sheets: [{ name: getReport("totalSalesMatrix").label, matrix }],
+      rows: [],
+      summary: [
+        { label: "Total sales (grand total)", value: matrix.grandTotal, ...MONEY },
+        { label: "Collections (rows)", value: matrix.rows.length, type: "number" },
+        { label: "Locations (columns)", value: matrix.columns.length, type: "number" },
+        { label: "Of which shipping", value: matrix.shipping, ...MONEY },
+      ],
+      notes: [
+        "Each cell is the Total Sales (net sales plus shipping and taxes) of one collection at one location: the General Sales Report's Total Sales, with every sale and return counted on the day it happened.",
+        "The rows and columns are the collections and locations that had a sale in the period; none is listed in advance. Shipping belongs to no collection and has its own row; items with no collection are listed as (No collection) and orders with no location as (No location).",
         "Credit Shopify keeps on exchanges is not included; it is reported in the Refund Credit Report.",
       ],
     };

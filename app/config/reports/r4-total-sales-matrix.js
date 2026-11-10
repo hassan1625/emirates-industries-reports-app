@@ -7,6 +7,8 @@ export const totalSalesMatrixReport = {
   label: "Total Sales Report by Date Range",
   route: "/app/report-total-sales",
   phase: 2,
+  hasScreen: true,
+  description: "Total sales of a period with collections down the side and locations across the top, with row, column and grand totals. Downloads as an Excel file.",
 
   // Dynamic pivot: rows and columns come from whatever had sales in the range.
   matrix: {
