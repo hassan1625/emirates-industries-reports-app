@@ -339,7 +339,7 @@ describe("generateReport", () => {
     const db = fakeDb({ ...files, reportType: "debugPipeline" });
     assert.equal((await generateReport({ db, jobId: "job1" })).action, "not-supported");
     assert.equal(db.row.stage, STAGES.DATA_READY);
-    assert.deepEqual(GENERATED_REPORT_TYPES, ["generalSales", "refundCredit", "stockByLocation", "salesComparison"]);
+    assert.deepEqual(GENERATED_REPORT_TYPES, ["generalSales", "refundCredit", "stockByLocation", "salesComparison", "skuQuantity"]);
   });
 
   test("an unknown job id is an error", async () => {
@@ -599,5 +599,91 @@ describe("Sales Comparison Report", () => {
     const outcome = await generateReport({ db, admin: {}, jobId: "job1" });
     assert.equal(outcome.action, "failed");
     assert.match(db.row.error, /no comparison periods/);
+  });
+});
+
+describe("Quantity Report for SKU", () => {
+  let dir;
+  let files;
+  const originalRoot = process.env.REPORT_STORAGE_DIR;
+  const PV = (sku) => `gid://shopify/ProductVariant/${sku}`;
+  // The same orders, with their variants pointing at catalogue variants.
+  const orders = ORDERS.map((r) => (r.variant ? { ...r, variant: { ...r.variant, id: PV(r.sku) } } : r));
+  // Each product is followed by its own collection and variants, as in Shopify's export.
+  const products = [
+    PRODUCTS[0], PRODUCTS[1],
+    { id: PV("T1"), sku: "T1", barcode: "BC-T1", title: "S", price: "50", __parentId: "P1" },
+    { id: PV("J1"), sku: "J1", barcode: "BC-J1", title: "M", price: "100", __parentId: "P1" },
+    PRODUCTS[2], PRODUCTS[3],
+    { id: PV("S1"), sku: "S1", barcode: "BC-S1", title: "S", price: "100", __parentId: "P2" },
+    { id: PV("X1"), sku: "X1", barcode: "BC-X1", title: "L", price: "100", __parentId: "P2" }, // never sold
+  ];
+  before(async () => {
+    dir = await mkdtemp(join(tmpdir(), "skuqty-"));
+    process.env.REPORT_STORAGE_DIR = dir;
+    files = { ordersFile: join(dir, "orders.jsonl"), eventsFile: join(dir, "events.jsonl"), productsFile: join(dir, "products.jsonl") };
+    await writeFile(files.ordersFile, jsonl(orders));
+    await writeFile(files.eventsFile, jsonl(EVENTS));
+    await writeFile(files.productsFile, jsonl(products));
+  });
+  after(async () => {
+    if (originalRoot === undefined) delete process.env.REPORT_STORAGE_DIR;
+    else process.env.REPORT_STORAGE_DIR = originalRoot;
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  const AUGUST = { from: "2026-08-01", to: "2026-08-31", start: "2026-07-31T20:00:00.000Z", end: "2026-08-31T19:59:59.000Z" };
+  const SEPTEMBER = { ...LOCAL, ...RANGE };
+  const skuRequest = (extra = {}) => JSON.stringify({ reportKey: "skuQuantity", range: { start: AUGUST.start, end: RANGE.end }, localRange: LOCAL, periods: { current: SEPTEMBER, previous: AUGUST }, filters: {}, ...extra });
+  const build = async (extra) => {
+    const db = fakeDb({ ...files, reportType: "skuQuantity", params: skuRequest(extra) });
+    const outcome = await generateReport({ db, admin: {}, jobId: "job1" });
+    assert.equal(outcome.action, "ready", db.row.error);
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(fromLocalUrl(db.row.resultFileUrl));
+    const sheet = workbook.worksheets[0]; // its name is cut to the 31 characters Excel allows
+    const rows = [];
+    sheet.eachRow((row) => rows.push(row.values.slice(1)));
+    const at = rows.findIndex((r) => r[0] === "SKU");
+    return { workbook, outcome, header: rows[at], body: rows.slice(at + 1), title: rows.slice(0, at) };
+  };
+
+  test("every SKU is listed, sold or not, with both periods' net quantities, the difference and a total", async () => {
+    const { header, body, title, outcome } = await build();
+    assert.deepEqual(header, ["SKU", "Barcode", "Quantity Sold 2026-08-01 to 2026-08-31", "Quantity Sold 2026-09-01 to 2026-09-30", "Difference", "Difference %"]);
+    assert.deepEqual(title, [["Period", "2026-09-01 to 2026-09-30"], ["Compared with", "2026-08-01 to 2026-08-31"]]);
+    assert.deepEqual(body.map((r) => Array.from(r)), [
+      ["J1", "BC-J1", 2, -1, -3, -1.5], // sold 2 in August, one returned in September
+      ["S1", "BC-S1", 0, 1, 1], // no percentage: nothing sold the month before
+      ["T1", "BC-T1", 0, 1, 1],
+      ["X1", "BC-X1", 0, 0, 0], // never sold: still listed
+      ["Total", undefined, 2, 1, -1, -0.5],
+    ]);
+    assert.equal(outcome.rows, 4);
+  });
+
+  test("the headings carry the years when the periods are a year apart", async () => {
+    const LAST_YEAR = { from: "2025-09-01", to: "2025-09-30", start: "2025-08-31T20:00:00.000Z", end: "2025-09-30T19:59:59.000Z" };
+    const { header } = await build({ range: { start: LAST_YEAR.start, end: RANGE.end }, periods: { current: SEPTEMBER, previous: LAST_YEAR } });
+    assert.deepEqual(header.slice(2, 4), ["Quantity Sold 2025", "Quantity Sold 2026"]);
+  });
+
+  test("a collection filter lists only the SKUs of that collection", async () => {
+    const { body } = await build({ filters: { collection: ["Girls"] } });
+    assert.deepEqual(body.map((r) => r[0]), ["S1", "X1", "Total"]);
+  });
+
+  test("a location filter counts only the sales at that location, and still lists every SKU", async () => {
+    const { body } = await build({ filters: { posLocation: [ALAIN] } });
+    assert.deepEqual(body.map((r) => [r[0], r[2], r[3]]), [["J1", 2, -1], ["S1", 0, 0], ["T1", 0, 1], ["X1", 0, 0], ["Total", 2, 0]]); // Al Ain: J1 sold 2 then 1 returned, T1 sold 1
+  });
+
+  test("the Summary counts the SKUs listed and those without sales", async () => {
+    const { workbook } = await build();
+    const lines = new Map();
+    workbook.getWorksheet("Summary").eachRow((r) => lines.set(r.getCell(1).value, r.getCell(2).value));
+    assert.equal(lines.get("SKUs listed (one per item)"), 4);
+    assert.equal(lines.get("Listed with sales in either period"), 3);
+    assert.equal(lines.get("Listed with no sales in either period"), 1);
   });
 });

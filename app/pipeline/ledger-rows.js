@@ -152,7 +152,7 @@ export function ledgerOrderRows(order, agreements, { columns, productIndex, mapp
         returnReason: type === ORDER_TYPES.reversal ? reasonFor(order, agreement.return?.id, sale.lineId) : null,
         totalSales: figures.total,
       });
-      rows.push({ values, meta: { ...baseMeta, kind: "line", actionType: sale.actionType, happenedAt: agreement.happenedAt, lineItemId: sale.lineId, productId: line?.product?.id ?? null, collectionName } });
+      rows.push({ values, meta: { ...baseMeta, kind: "line", actionType: sale.actionType, happenedAt: agreement.happenedAt, lineItemId: sale.lineId, productId: line?.product?.id ?? null, variantId: line?.variant?.id ?? null, collectionName } });
     }
 
     // Shipping: one row per event that charged it or discounted it. A fully

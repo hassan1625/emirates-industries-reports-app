@@ -13,6 +13,7 @@
 import { defaultFieldKeys, getReport, getReportFields, getReportFilters, hasFieldSelection } from "../config/index.js";
 import { groupAgreementOrders, groupOrders, readJsonl } from "./bulk-file.js";
 import { buildComparisonGroups, comparisonSheets, periodLabels } from "./comparison-rows.js";
+import { buildSkuQuantities, skuQuantitySheet } from "./sku-quantity-rows.js";
 import { buildCreditRows, summarizeCredits } from "./credit-rows.js";
 import { difference, round2 } from "../calculations/index.js";
 import { loadProductIndex } from "./join.js";
@@ -28,7 +29,7 @@ import { removeWorkFiles, shouldKeepWorkFiles } from "./work-files.js";
 import { STAGES, exportSequence, FILE_COLUMN } from "./job-stages.js";
 import { buildStockRows, lowStockThreshold, stockColumns, summarizeStock } from "./stock-rows.js";
 
-export const GENERATED_REPORT_TYPES = Object.freeze(["generalSales", "refundCredit", "stockByLocation", "salesComparison"]);
+export const GENERATED_REPORT_TYPES = Object.freeze(["generalSales", "refundCredit", "stockByLocation", "salesComparison", "skuQuantity"]);
 
 const parseParams = (text) => {
   try {
@@ -48,6 +49,21 @@ export function buildReportColumns(reportKey, fields) {
 }
 
 const MONEY = { type: "currency" };
+
+// The two periods of a comparison job: their instants for the row builders, the
+// "from to to" text for titles and the headings that tell the two apart.
+function comparisonPeriods(params) {
+  const { previous, current } = params.periods ?? {};
+  if (!previous?.start || !current?.start) throw new Error("the request has no comparison periods");
+  const window = (p) => ({ startMs: Date.parse(p.start), endMs: Date.parse(p.end) + 999 }); // a period ends at the last whole second of its day
+  const shown = { previous: `${previous.from} to ${previous.to}`, current: `${current.from} to ${current.to}` };
+  return {
+    periods: { previous: window(previous), current: window(current) },
+    shown,
+    labels: periodLabels(previous, current),
+    title: [{ label: "Period", value: shown.current }, { label: "Compared with", value: shown.previous }],
+  };
+}
 const STOCK_REPORTS = new Set(["stockByLocation"]); // reports with no date range
 
 // Each builder gets { job, params, columns, range, filters, mappings, staffByOrder, keep }
@@ -111,20 +127,12 @@ const BUILDERS = {
 
   // Total Sales of two periods (this year and the year before) by collection and by location.
   async salesComparison({ job, params, mappings, keep }) {
-    const { previous, current } = params.periods ?? {};
-    if (!previous?.start || !current?.start) throw new Error("the request has no comparison periods");
+    const { periods, shown, labels, title } = comparisonPeriods(params);
     const productIndex = await loadProductIndex(job.productsFile);
     const agreementsByOrder = await indexAgreements(groupAgreementOrders(readJsonl(job.eventsFile)));
-    const window = (p) => ({ startMs: Date.parse(p.start), endMs: Date.parse(p.end) + 999 });
-    const groups = await buildComparisonGroups(groupOrders(readJsonl(job.ordersFile)), agreementsByOrder, { periods: { previous: window(previous), current: window(current) }, productIndex, mappings, keep });
-    const labels = periodLabels(previous, current);
+    const groups = await buildComparisonGroups(groupOrders(readJsonl(job.ordersFile)), agreementsByOrder, { periods, productIndex, mappings, keep });
     const { sheets, totals } = comparisonSheets("salesComparison", groups, labels);
     const overall = totals.byLocation; // every sale has a location, so this is the report's total
-    const shown = { previous: `${previous.from} to ${previous.to}`, current: `${current.from} to ${current.to}` };
-    const title = [
-      { label: "Period", value: shown.current },
-      { label: "Compared with", value: shown.previous },
-    ];
     const change = difference(overall.current, overall.previous);
     const headingOf = (key) => sheets[0].columns.find((column) => column.key === key).label;
     return {
@@ -142,6 +150,41 @@ const BUILDERS = {
         "The By Collection sheet shows shipping on its own row, because shipping belongs to no collection; items with no collection are listed as (No collection). Choosing collections leaves shipping out.",
         "Difference is the current period minus the earlier one; Difference % is left blank when the earlier period had no sales.",
         "Credit Shopify keeps on exchanges is not included; it is reported in the Refund Credit Report.",
+      ],
+    };
+  },
+
+  // The quantity sold of every SKU in two periods.
+  async skuQuantity({ job, params, mappings, filters, keep }) {
+    const { periods, shown, labels, title } = comparisonPeriods(params);
+    const productIndex = await loadProductIndex(job.productsFile);
+    const agreementsByOrder = await indexAgreements(groupAgreementOrders(readJsonl(job.eventsFile)));
+    const { entries, stats } = await buildSkuQuantities(groupOrders(readJsonl(job.ordersFile)), agreementsByOrder, { periods, productIndex, mappings, keep, collections: filters.collection ?? [] });
+    const { columns, rows, footer, total } = skuQuantitySheet("skuQuantity", entries, labels);
+    const change = difference(total.current, total.previous);
+    const headingOf = (key) => columns.find((column) => column.key === key).label;
+    return {
+      columns,
+      rows,
+      footer,
+      title,
+      period: `${shown.current}, compared with ${shown.previous}`,
+      summary: [
+        { label: "SKUs listed (one per item)", value: stats.listed, type: "number" },
+        { label: "Listed with sales in either period", value: stats.withSales, type: "number" },
+        { label: "Listed with no sales in either period", value: stats.listed - stats.withSales, type: "number" },
+        { label: "" },
+        { label: `${headingOf("quantityCurrent")} (${shown.current})`, value: total.current, type: "number" },
+        { label: `${headingOf("quantityPrevious")} (${shown.previous})`, value: total.previous, type: "number" },
+        { label: headingOf("difference"), value: change.value, type: "number" },
+        ...(change.percent === null ? [] : [{ label: headingOf("differencePercent"), value: change.percent / 100, type: "percent" }]),
+      ],
+      notes: [
+        "Quantity Sold is the General Sales Report's Net Items Sold: items sold (including exchange replacements) minus items returned, each counted on the day it happened.",
+        "Every item of the catalogue is listed, with or without sales (draft and archived products included). Choosing collections lists only the items of those collections; choosing locations counts only the sales made at them.",
+        "Difference is the current period minus the earlier one; Difference % is left blank when the earlier period sold nothing.",
+        ...(stats.sharedSkus ? [`${stats.sharedSkus} SKU(s) belong to more than one item (variant); each item has its own row, told apart by barcode.`] : []),
+        ...(entries.has("(items with no SKU or product)") ? ["The row (items with no SKU or product) adds up custom items sold without a catalogue product."] : []),
       ],
     };
   },
