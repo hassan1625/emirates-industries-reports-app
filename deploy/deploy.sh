@@ -26,9 +26,19 @@ NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
 [ "$NODE_MAJOR" -ge 22 ] || { echo "Node 22 or newer is needed (this is $(node -v))."; exit 1; }
 
 echo "==> Checking for reports in progress"
-if ! node --env-file=.env deploy/running-jobs.mjs; then
-  if [ "$FORCE" -eq 1 ]; then echo "   --force given: continuing anyway"; else
-    echo "A report is being built. Wait for it to finish, or run again with --force."; exit 1; fi
+if [ -d node_modules/@prisma/client ]; then
+  set +e
+  node --env-file=.env deploy/running-jobs.mjs
+  RC=$?
+  set -e
+  if [ "$RC" -eq 1 ]; then
+    if [ "$FORCE" -eq 1 ]; then echo "   --force given: continuing anyway"; else
+      echo "A report is being built. Wait for it to finish, or run again with --force."; exit 1; fi
+  elif [ "$RC" -ne 0 ]; then
+    echo "   could not check (normal on a first deploy); continuing"
+  fi
+else
+  echo "   first deploy (packages not installed yet): nothing to check"
 fi
 
 echo "==> Getting the code ($REF)"
