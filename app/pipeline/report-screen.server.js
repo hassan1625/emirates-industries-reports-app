@@ -11,6 +11,8 @@ import { addDays, priorYearRange, todayInZone } from "./dates";
 import { allowedValues, loadFilterOptions } from "./filter-options";
 import { describeFilters, parseReportRequest } from "./report-request";
 import { listRecentJobs } from "./recent-jobs";
+import { STOCK_REPORT_TYPES } from "./job-stages";
+import { ensureDefaultMappings } from "./location-mapping";
 import { startReportJob } from "./start-job";
 
 export async function reportScreenLoader({ request, reportKey }) {
@@ -40,6 +42,18 @@ export async function reportScreenAction({ request, reportKey }) {
   if (!result.ok) return { errors: result.errors, jobId: null };
 
   const { range, compareRange, window, filters, fields } = result.value;
+
+  // Online Store and Mobile App orders are reported under the Head office location. Those
+  // channel -> location rows are created here the first time a sales report runs (existing
+  // rows are never touched), so no separate setup step is needed on a new server.
+  if (!STOCK_REPORT_TYPES.includes(reportKey)) {
+    try {
+      await ensureDefaultMappings({ db, admin, shop: session.shop });
+    } catch (error) {
+      return { errors: { form: `Could not set up the default locations: ${error.message}` }, jobId: null };
+    }
+  }
+
   try {
     const job = await startReportJob({
       db,

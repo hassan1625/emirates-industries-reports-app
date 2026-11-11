@@ -30,3 +30,4 @@ database.sqlite
 .react-router/
 # downloaded bulk export files
 /storage/
+!.env.example

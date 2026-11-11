@@ -1,4 +1,4 @@
-// ReportJob.stage values. The column is a plain string (SQLite has no enums),
+// ReportJob.stage values. The column is a plain string (not a database enum),
 // so this file is the single list of allowed values.
 export const STAGES = Object.freeze({
   PENDING: "PENDING", // job created, nothing started

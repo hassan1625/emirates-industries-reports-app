@@ -8,9 +8,12 @@ generator client {
 // Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
 // enough when changing adapters.
 // See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
+// MariaDB 10.11 / MySQL 8 (the client's server runs MariaDB). The connection string
+// comes from DATABASE_URL, for example mysql://USER:PASSWORD@HOST:3306/DATABASE.
+// MySQL gives `String` a 191-character column, so long text is marked @db.Text.
 datasource db {
-  provider = "sqlite"
-  url      = "file:dev.sqlite"
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model Session {
@@ -18,9 +21,9 @@ model Session {
   shop                String
   state               String
   isOnline            Boolean   @default(false)
-  scope               String?
+  scope               String?   @db.Text
   expires             DateTime?
-  accessToken         String
+  accessToken         String    @db.Text
   userId              BigInt?
   firstName           String?
   lastName            String?
@@ -29,13 +32,13 @@ model Session {
   locale              String?
   collaborator        Boolean?  @default(false)
   emailVerified       Boolean?  @default(false)
-  refreshToken        String?
+  refreshToken        String?   @db.Text
   refreshTokenExpires DateTime?
 }
 
 // Tracks one report generation run through the bulk-operation pipeline.
-// `reportType` and `stage` are plain strings because SQLite has no enums;
-// allowed values are defined in the app code, not the database.
+// `reportType` and `stage` are plain strings, not database enums; allowed values
+// are defined in the app code, not the database.
 model ReportJob {
   id                String   @id @default(cuid())
   shop              String
@@ -45,17 +48,17 @@ model ReportJob {
   eventsBulkOpId    String?
   productsBulkOpId  String?
   inventoryBulkOpId String?
-  resultFileUrl     String?
+  resultFileUrl     String?  @db.Text
   resultRows        Int?
   resultBytes       Int?
   // Pipeline bookkeeping (Step 15): last error, downloaded export files on
   // disk, and the request (date range, filters, fields) as JSON text.
-  error             String?
-  ordersFile        String?
-  eventsFile        String?
-  productsFile      String?
-  inventoryFile     String?
-  params            String?
+  error             String?  @db.Text
+  ordersFile        String?  @db.Text
+  eventsFile        String?  @db.Text
+  productsFile      String?  @db.Text
+  inventoryFile     String?  @db.Text
+  params            String?  @db.LongText
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

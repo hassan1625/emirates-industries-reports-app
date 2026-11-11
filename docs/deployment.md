@@ -36,9 +36,21 @@ report loses them; that job then fails with a clear message and can simply be ru
 
 ## Database
 
-Development uses SQLite (`prisma/dev.sqlite`). The plan calls for PostgreSQL (AWS RDS) in
-production: change the Prisma datasource provider to `postgresql`, set `DATABASE_URL`, and run
-`npx prisma migrate deploy`. Not done yet; it needs the client's database.
+The app uses MariaDB 10.11 (MySQL 8 also works) through Prisma. The connection string is
+the `DATABASE_URL` environment value:
+
+    mysql://USER:PASSWORD@HOST:3306/DATABASE
+
+- Create an empty database with the `utf8mb4` character set (`utf8mb4_unicode_ci`) and a user
+  with all privileges on that one database. No other privileges are needed: the app never
+  creates databases.
+- Special characters in the password must be percent-encoded in the URL (`@` is `%40`).
+- Create the tables with `npx prisma migrate deploy` (part of `npm run setup`). It is safe to
+  run on every deploy: it applies only the migrations not yet applied.
+- For development, run a local MariaDB that mirrors the server, for example:
+  `docker run -d --name emirates-mariadb -e MARIADB_ROOT_PASSWORD=localdev -e MARIADB_DATABASE=emirates_report -p 3307:3306 -v emirates-mariadb-data:/var/lib/mysql mariadb:10.11 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci`
+  and put `DATABASE_URL="mysql://root:localdev@127.0.0.1:3307/emirates_report"` in `.env`
+  (see `.env.example`). Changing the schema in development uses `npx prisma migrate dev`.
 
 ## Email
 
