@@ -26,7 +26,7 @@ Shopify admin  ->  https://reporting.emiratesind.com  (Apache, SSL certificate)
 - [ ] pm2: `npm install -g pm2`
 - [ ] MariaDB/MySQL database and its user created (cPanel > Manage My Databases), character set `utf8mb4_unicode_ci`
 - [ ] The domain's proxy rule is in `~/public_html/.htaccess` (section 3.4)
-- [ ] The Shopify app is set up for production (section 4)
+- [ ] The Shopify app is set up for production (section 4); development and production share one app, with the rules in 4.1
 - [ ] The developer diagnostic page stays hidden (it is, unless `ENABLE_DEBUG_PAGE=on` is set; see section 6)
 
 ## 3. First-time setup on the server
@@ -132,18 +132,28 @@ the server now and then (the host's own backup of the account is not a replaceme
 
 ## 4. Shopify app setup (done once, from a developer machine)
 
-### 4.1 One decision: separate apps for development and production
+### 4.1 One Shopify app for development and production
 
-`shopify app dev` rewrites the app's address to a temporary tunnel. If the same Shopify app is used for
-development and production, the next development session points the LIVE app at the tunnel and production stops working.
+The same Shopify app (client ID `55a91743cf2b14a2f4e1f347dbfc25a2`) is used for development and for the
+client's live store. It already has the `read_all_orders` approval, which a new app would have to request again.
+Shopify's documentation says `shopify app dev` makes a "dev preview" on the development store you choose, isolated to
+that store, and does not change the app address on other stores. Shopify still recommends a separate app for production,
+so these rules keep the live store safe:
 
-Recommended:
-1. **The existing app is the production app.** It already has the `read_all_orders` approval, which takes time to get again.
-2. Create a **separate development app** in the Shopify Dev Dashboard, install it on the development store, and
-   point the developer's `shopify.app.toml` at that app's client ID (`shopify app config link`).
-3. `shopify.app.production.toml` (in the repo) holds the production settings; its `automatically_update_urls_on_dev` is `false`.
+1. **Never run `shopify app dev` against the client's store.** Develop only on the development store (`hassan-app-development`).
+   If the CLI asks which store to use, choose the development store.
+2. **Test the isolation once, right after the first deploy** (section 4.4). Do not rely on it before that.
+3. **After any development session,** if there is any doubt, put the production settings back:
+   `shopify app deploy --config production`.
+4. `shopify.app.toml` (development settings, tunnel address) and `shopify.app.production.toml` (production address) must
+   not be mixed up. The production file has `automatically_update_urls_on_dev = false`.
 
-Until a separate development app exists, do not run `shopify app dev` against the production app.
+If the isolation test fails (a development session changes what the client's store loads), use one of these instead:
+- **Uninstall and reinstall** the app on the client's store around each development session (the live reports stop meanwhile;
+  the client has to approve the install again; the app deletes the store's saved login on uninstall but keeps jobs, reports and
+  location mappings), or
+- **Create a separate development app** in the Shopify Dev Dashboard, install it on the development store, and point
+  `shopify.app.toml` at its client ID (`shopify app config link`). Its `read_all_orders` access has to be requested separately.
 
 ### 4.2 Push the production settings
 
@@ -158,6 +168,16 @@ This sets the app URL to `https://reporting.emiratesind.com`, the permissions an
 
 Open the app from the store's admin (Apps). On first open the app logs in and stores its access
 token in the database. The server's `.env` must have the same client ID and secret as the app.
+
+### 4.4 One-time isolation test (after the first deploy)
+
+With the production app live and installed on the client's store:
+
+1. On the developer machine, run `shopify app dev` and choose the development store.
+2. Open the app from the **client's** store admin. It must still load from `reporting.emiratesind.com` and show the reports.
+   Also check, in the Shopify Dev Dashboard, that the production app's address is still `https://reporting.emiratesind.com`.
+3. Stop `shopify app dev`. If the preview was left on the development store, `shopify app dev clean` removes it.
+4. If step 2 failed, run `shopify app deploy --config production` to put production back, then choose a fallback in 4.1.
 
 ## 5. Updating the app
 
@@ -222,7 +242,7 @@ gunzip -c ~/backups/db/DBNAME-DATE.sql.gz | mysql --defaults-extra-file=$HOME/.e
 
 - The diagnostic page (`app/routes/app.debug.orders-bulk.jsx`) is kept for investigating client feedback; it is hidden on the server unless switched on. Remove it, and the prototype files it writes, once the app is finished.
 - Decide on Amazon S3 for finished reports (optional; without it reports stay on the server's disk under `REPORT_STORAGE_DIR`).
-- Create the separate development Shopify app (section 4.1).
+- Run the one-time isolation test (section 4.4) after the first deploy.
 
 ## 10. Security notes
 
