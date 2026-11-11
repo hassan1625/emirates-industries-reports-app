@@ -1,4 +1,4 @@
-// TEMPORARY diagnostic page (Dev Plan validation). Remove before production.
+// Diagnostic page (Dev Plan validation). Hidden on a production server unless ENABLE_DEBUG_PAGE=on.
 // Runs the candidate bulk exports for all five reports against the installed
 // store and shows aggregate summaries (counts only, never customer data), plus
 // scope probes.
@@ -694,9 +694,11 @@ const CURRENT_OPERATION_QUERY = `#graphql
     }
   }`;
 
+// On a production server this page does not exist ("not found") unless the server's
+// settings say ENABLE_DEBUG_PAGE=on. Turn it on only while a developer needs it, then off again.
 function notFoundInProduction() {
   // eslint-disable-next-line no-undef
-  if (process.env.NODE_ENV === "production") throw new Response("Not found", { status: 404 });
+  if (process.env.NODE_ENV === "production" && process.env.ENABLE_DEBUG_PAGE !== "on") throw new Response("Not found", { status: 404 });
 }
 
 const summaryCache = new Map();

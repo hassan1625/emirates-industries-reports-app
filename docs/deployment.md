@@ -1,5 +1,7 @@
 # Deployment settings
 
+Setup, updates and troubleshooting are in `docs/handover-guide.md`; this file lists every setting.
+
 Everything the app reads from its environment. Nothing here is a secret unless marked.
 
 ## Shopify (set by the Shopify CLI in development)
@@ -24,6 +26,7 @@ Finished reports go to Amazon S3 when `REPORT_S3_BUCKET` is set, otherwise to th
 | `REPORT_RETENTION_DAYS` | days a finished report is kept; afterwards the file is deleted and the report shows "Expired". `0` keeps forever | `30` |
 | `REPORT_KEEP_WORK_FILES` | `on` keeps the three bulk exports of each job on disk after the report is built (production deletes them) | off in production, on elsewhere |
 | `REPORT_STORAGE_DIR` | folder for working files (and local reports) | `./storage` |
+| `ENABLE_DEBUG_PAGE` | `on` makes the developer diagnostic page (`/app/debug/orders-bulk`) available on a production server. Leave it unset normally: the page then returns "not found". Turn it on only while a developer needs it, restart the app, and turn it off again | not set (hidden) |
 | `JOB_POLLER` | `off` disables the background recovery and retention timers | on |
 
 Minimal IAM permissions for the app's user, on the bucket's `reports/` folder only:

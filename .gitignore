@@ -31,3 +31,4 @@ database.sqlite
 # downloaded bulk export files
 /storage/
 !.env.example
+!.env.production.example
