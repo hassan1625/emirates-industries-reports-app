@@ -55,7 +55,10 @@ npx prisma generate
 npx prisma migrate deploy
 
 echo "==> Building"
-npm run build
+# The build needs the .env settings: the app's public address becomes an allowed origin for form posts
+# (see react-router.config.js); without it every POST from the Shopify admin would fail with 400.
+grep -q '^SHOPIFY_APP_URL=' .env || { echo "SHOPIFY_APP_URL is missing from .env"; exit 1; }
+node --env-file=.env ./node_modules/@react-router/dev/bin.js build
 
 echo "==> Restarting the app"
 pm2 startOrReload ecosystem.config.cjs --update-env

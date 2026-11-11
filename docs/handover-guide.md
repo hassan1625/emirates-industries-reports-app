@@ -79,19 +79,24 @@ The log should say `Job poller started`.
 ### 3.4 The domain's proxy rule
 
 `~/public_html/.htaccess` must forward the domain to the app and leave the certificate-renewal path alone.
-Keep the lines cPanel put there and add these at the end:
+Keep the lines cPanel put there (take a copy first: `cp ~/public_html/.htaccess ~/public_html/.htaccess.bak`) and add these at the end:
 
 ```apache
 # proxy to the Node app (port 3000)
+DirectoryIndex disabled
 RewriteEngine On
-RewriteCond %{REQUEST_URI} !^/\.well-known/
+RewriteRule ^\.well-known/ - [L]
+RewriteRule ^index\.php$ http://127.0.0.1:3000/ [P,L]
 RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
 <IfModule mod_headers.c>
   RequestHeader set X-Forwarded-Proto "https"
 </IfModule>
 ```
 
-The `.well-known` exclusion matters: without it the free SSL certificate cannot renew and the site goes down.
+- The `.well-known` line matters: without it the free SSL certificate cannot renew and the site goes down.
+- `DirectoryIndex disabled` and the `index.php` line matter: cPanel's Apache turns a request for `/` into `/index.php`,
+  which the app does not have (it answers 404). With these two lines the front page reaches the app.
+- Test: `https://reporting.emiratesind.com/` and `/auth/login` answer 200, `/app` answers 410 (Shopify wants a login).
 
 ### 3.5 Start again after a server reboot
 
@@ -228,6 +233,8 @@ gunzip -c ~/backups/db/DBNAME-DATE.sql.gz | mysql --defaults-extra-file=$HOME/.e
 
 | Symptom | Likely cause and fix |
 |---|---|
+| The domain's front page answers 404 and the app log says `No route matches URL "/index.php"` | The proxy rule lacks `DirectoryIndex disabled` and the `index.php` line (section 3.4). |
+| Opening a report works, but "Generate report" gives "Application Error" and the log says `POST ... .data 400` / `Error: Bad Request` | The app was built without `SHOPIFY_APP_URL`, so React Router refuses POSTs coming from the public address (`react-router.config.js`). Make sure `.env` has `SHOPIFY_APP_URL` and run `deploy/deploy.sh` again (it builds with the `.env` settings). |
 | The domain shows an Apache error (503/500) | The app is not running: `pm2 status`, `pm2 logs emirates-reports`. Or the proxy rule is missing from `.htaccess`. |
 | `pm2 status` shows errored / restarting | Read the log. Most often a wrong `DATABASE_URL` (the log mentions `P1001` or access denied) or a missing value in `.env`. |
 | Blank page or login loop in the Shopify admin | `SHOPIFY_APP_URL` in `.env` and the app URL in Shopify must be identical (`https://reporting.emiratesind.com`, no trailing slash); client ID and secret must match the app. |
