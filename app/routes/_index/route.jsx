@@ -1,7 +1,8 @@
-import { redirect, Form, useLoaderData } from "react-router";
-import { login } from "../../shopify.server";
+import { redirect } from "react-router";
 import styles from "./styles.module.css";
 
+// The address's front page. Shopify opens the app with ?shop=..., which goes straight to the app;
+// anyone else (this app is for one store, there is no public sign-up) sees where to find it.
 export const loader = async ({ request }) => {
   const url = new URL(request.url);
 
@@ -9,45 +10,18 @@ export const loader = async ({ request }) => {
     throw redirect(`/app?${url.searchParams.toString()}`);
   }
 
-  return { showForm: Boolean(login) };
+  return null;
 };
 
 export default function App() {
-  const { showForm } = useLoaderData();
-
   return (
     <div className={styles.index}>
       <div className={styles.content}>
-        <h1 className={styles.heading}>A short heading about [your app]</h1>
+        <h1 className={styles.heading}>Emirates Custom Report App</h1>
         <p className={styles.text}>
-          A tagline about [your app] that describes your value proposition.
+          Sales and stock reports for Emirates Industries. Open the app from the
+          Shopify admin, under Apps.
         </p>
-        {showForm && (
-          <Form className={styles.form} method="post" action="/auth/login">
-            <label className={styles.label}>
-              <span>Shop domain</span>
-              <input className={styles.input} type="text" name="shop" />
-              <span>e.g: my-shop-domain.myshopify.com</span>
-            </label>
-            <button className={styles.button} type="submit">
-              Log in
-            </button>
-          </Form>
-        )}
-        <ul className={styles.list}>
-          <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
-          </li>
-          <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
-          </li>
-          <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
-          </li>
-        </ul>
       </div>
     </div>
   );
